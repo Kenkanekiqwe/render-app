@@ -107,7 +107,7 @@ function ActiveCallPanel({ onMinimize }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const remoteVideo = remoteStream?.getVideoTracks?.().some(
-    (track) => track.readyState === 'live'
+    (track) => track.readyState === 'live' && !track.muted
   ) ? remoteStream : null;
   const localCamera = withVideo && videoEnabled ? localStream : null;
   const localVideo = screenSharing ? screenStream : localCamera;
