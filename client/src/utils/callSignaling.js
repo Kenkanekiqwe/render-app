@@ -11,6 +11,8 @@ export class CallSignalingClient {
     this.reconnectTimer = null;
     this.shouldConnect = false;
     this.pingTimer = null;
+    this.ready = false;
+    this.outbox = [];
   }
 
   onMessage(handler) {
@@ -23,7 +25,7 @@ export class CallSignalingClient {
       try {
         fn(msg);
       } catch {
-        // ignore listener errors
+        // Keep other listeners alive if one listener fails.
       }
     });
   }
@@ -44,6 +46,8 @@ export class CallSignalingClient {
       this.ws = null;
     }
 
+    this.ready = false;
+
     try {
       this.ws = new WebSocket(this.getWsUrl());
     } catch {
@@ -52,10 +56,8 @@ export class CallSignalingClient {
     }
 
     this.ws.onopen = () => {
-      this.clearReconnect();
-      this.pingTimer = window.setInterval(() => {
-        this.send({ type: 'ping' });
-      }, 25000);
+      // The socket being open is not enough: the server still has to validate
+      // the token and register its message handler before we send call events.
     };
 
     this.ws.onmessage = (event) => {
@@ -65,17 +67,29 @@ export class CallSignalingClient {
       } catch {
         return;
       }
+
       if (msg.type === 'ready') {
         this.userId = msg.userId;
-        this.iceServers = msg.iceServers;
+        this.iceServers = Array.isArray(msg.iceServers) ? msg.iceServers : null;
+        this.ready = true;
+        this.clearReconnect();
+        this.flushOutbox();
+
+        if (this.pingTimer) window.clearInterval(this.pingTimer);
+        this.pingTimer = window.setInterval(() => {
+          this.send({ type: 'ping' });
+        }, 25000);
       }
+
       this.emit(msg);
     };
 
     this.ws.onclose = () => {
       this.ws = null;
+      this.ready = false;
+      this.outbox = [];
       if (this.pingTimer) {
-        clearInterval(this.pingTimer);
+        window.clearInterval(this.pingTimer);
         this.pingTimer = null;
       }
       if (this.shouldConnect) this.scheduleReconnect();
@@ -88,9 +102,11 @@ export class CallSignalingClient {
 
   disconnect() {
     this.shouldConnect = false;
+    this.ready = false;
+    this.outbox = [];
     this.clearReconnect();
     if (this.pingTimer) {
-      clearInterval(this.pingTimer);
+      window.clearInterval(this.pingTimer);
       this.pingTimer = null;
     }
     if (this.ws) {
@@ -109,15 +125,37 @@ export class CallSignalingClient {
 
   clearReconnect() {
     if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
+      window.clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
   }
 
+  flushOutbox() {
+    if (!this.ready || this.ws?.readyState !== WebSocket.OPEN) return;
+    const pending = this.outbox;
+    this.outbox = [];
+    pending.forEach((payload) => {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify(payload));
+      }
+    });
+  }
+
   send(payload) {
-    if (this.ws?.readyState !== WebSocket.OPEN) return false;
-    this.ws.send(JSON.stringify(payload));
-    return true;
+    if (this.ws?.readyState === WebSocket.OPEN && this.ready) {
+      this.ws.send(JSON.stringify(payload));
+      return true;
+    }
+
+    // Never queue keepalive packets or messages while explicitly disconnected.
+    if (payload?.type === 'ping' || !this.shouldConnect) return false;
+
+    // Calls often begin immediately after login, before the authenticated
+    // WebSocket "ready" message arrives. Queue these messages instead of
+    // silently dropping the invite/SDP/ICE candidate.
+    if (this.outbox.length < 100) this.outbox.push(payload);
+    if (!this.ws && getToken()) this.connect();
+    return false;
   }
 
   invite({ callId, toUserId, withVideo }) {
