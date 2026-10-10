@@ -132,20 +132,24 @@ export class CallPeer {
     // Pre-negotiate a sender for optional system audio as well.
     this.screenAudioSender = this.pc.addTransceiver('audio', { direction: 'sendrecv' }).sender;
 
+    // Keep one stable remote stream. With pre-negotiated transceivers,
+    // audio and video can arrive with different/empty event.streams arrays;
+    // replacing the stream on every ontrack event drops the other media kind.
+    this.remoteMediaStream = new MediaStream();
     this.pc.ontrack = (event) => {
-      let stream = event.streams?.[0];
-      if (!stream) {
-        if (!this.remoteMediaStream) {
-          this.remoteMediaStream = new MediaStream();
+      const stream = this.remoteMediaStream;
+      if (event.track && !stream.getTracks().some((track) => track.id === event.track.id)) {
+        stream.addTrack(event.track);
+      }
+      event.track?.addEventListener('ended', () => {
+        try {
+          stream.removeTrack(event.track);
+        } catch {
+          // The peer may already be closing.
         }
-        this.remoteMediaStream.addTrack(event.track);
-        stream = this.remoteMediaStream;
-      } else {
-        this.remoteMediaStream = stream;
-      }
-      if (stream && this.onRemoteStream) {
-        this.onRemoteStream(stream, event.track);
-      }
+        this.onRemoteStream?.(stream, event.track);
+      }, { once: true });
+      if (this.onRemoteStream) this.onRemoteStream(stream, event.track);
     };
 
     this.pc.onicecandidate = (event) => {
