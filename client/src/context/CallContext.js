@@ -109,7 +109,9 @@ export function CallProvider({ enabled, children }) {
   const attachPeerHandlers = useCallback(
     (peer, callId, remoteUserId) => {
       peer.onRemoteStream = (stream) => {
-        setRemoteStream(stream);
+        // A new MediaStream identity forces the call UI to re-evaluate newly
+        // arrived video tracks even when the underlying stream object is stable.
+        setRemoteStream(new MediaStream(stream.getTracks()));
       };
       peer.onScreenShareEnded = () => {
         setScreenStream(null);
