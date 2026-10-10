@@ -15,10 +15,15 @@ function defaultIceServers() {
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
   ];
-  const turnUrl = process.env.TURN_URL;
-  if (turnUrl) {
+  // Support both UDP and TCP TURN transports. TURN_URL remains supported for
+  // backwards compatibility; TURN_URLS is a comma-separated list.
+  const turnUrls = String(process.env.TURN_URLS || process.env.TURN_URL || '')
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean);
+  if (turnUrls.length) {
     servers.push({
-      urls: turnUrl,
+      urls: turnUrls,
       username: process.env.TURN_USERNAME || '',
       credential: process.env.TURN_CREDENTIAL || '',
     });
