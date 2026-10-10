@@ -50,10 +50,20 @@ export function CallProvider({ enabled, children }) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [screenStream, setScreenStream] = useState(null);
-  const [screenSettings, setScreenSettings] = useState({
-    quality: '1080p',
-    fps: 30,
-    withAudio: true,
+  const [screenSettings, setScreenSettings] = useState(() => {
+    const defaults = { quality: '1080p', fps: 30, withAudio: true };
+    try {
+      const stored = JSON.parse(localStorage.getItem('render_call_screen_settings') || 'null');
+      if (!stored || typeof stored !== 'object') return defaults;
+      return {
+        quality: ['720p', '1080p', '1440p', 'native'].includes(stored.quality)
+          ? stored.quality : defaults.quality,
+        fps: [15, 30, 60].includes(Number(stored.fps)) ? Number(stored.fps) : defaults.fps,
+        withAudio: typeof stored.withAudio === 'boolean' ? stored.withAudio : defaults.withAudio,
+      };
+    } catch {
+      return defaults;
+    }
   });
   const [errorKey, setErrorKey] = useState('');
 
@@ -379,19 +389,19 @@ export function CallProvider({ enabled, children }) {
     }
   }, [screenSettings, screenSharing]);
 
-  const applyScreenSettings = useCallback(
-    async (next) => {
-      setScreenSettings((prev) => ({ ...prev, ...next }));
-      if (!screenSharing || !peerRef.current) return;
+  const applyScreenSettings = useCallback((next) => {
+    // Display-capture constraints are selected when sharing starts. Updating
+    // preferences must not restart capture or reopen the browser source picker.
+    setScreenSettings((prev) => {
+      const updated = { ...prev, ...next };
       try {
-        const stream = await peerRef.current.applyScreenSettings({ ...screenSettings, ...next });
-        setScreenStream(stream);
+        localStorage.setItem('render_call_screen_settings', JSON.stringify(updated));
       } catch {
-        setErrorKey('callScreenError');
+        // Keep current-session settings usable if browser storage is unavailable.
       }
-    },
-    [screenSettings, screenSharing]
-  );
+      return updated;
+    });
+  }, []);
 
   const value = useMemo(
     () => ({
