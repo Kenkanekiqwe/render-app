@@ -93,7 +93,11 @@ async function resolveAuthorizedMediaUrl(remoteUrl, getAccessToken) {
 }
 
 function wrapMediaProxyUrl(url) {
-  return url;
+  const raw = String(url || '').trim();
+  if (!raw || !isAllowedMediaUrl(raw) || !isArtworkUrl(raw)) return raw;
+  // Serve SoundCloud artwork through this app's own origin. Direct sndcdn.com
+  // image requests are unreliable for listeners whose ISPs block the CDN.
+  return `/api/proxy/media?url=${encodeURIComponent(raw)}`;
 }
 
 function unwrapMediaProxyUrl(url) {
@@ -330,7 +334,9 @@ function registerSoundCloudProxyRoutes(app, { resolveStream, getAccessToken }) {
       return res.status(400).json({ error: 'Invalid media url' });
     }
 
-    if (!shouldPipeThroughOrigin()) {
+    // Artwork must be fetched by our server even when audio streams normally
+    // redirect to SoundCloud. This avoids direct CDN requests from the listener.
+    if (!isArtworkUrl(remoteUrl) && !shouldPipeThroughOrigin()) {
       try {
         const dest = new URL(remoteUrl);
         res.setHeader('Cache-Control', 'public, max-age=86400');
