@@ -251,8 +251,9 @@ export class CallPeer {
       throw new Error('no_screen_track');
     }
 
-    videoTrack.onended = () => {
-      this.stopScreenShare();
+    videoTrack.onended = async () => {
+      await this.stopScreenShare();
+      this.onScreenShareEnded?.();
     };
 
     const audioTrack = this.screenStream.getAudioTracks()[0];
