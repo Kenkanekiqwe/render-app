@@ -11,6 +11,8 @@ import {
   FaVolumeUp,
   FaCog,
   FaPhone,
+  FaMinus,
+  FaExpand,
 } from 'react-icons/fa';
 import { useLanguage } from '../context/LanguageContext';
 import { useCall } from '../context/CallContext';
@@ -79,7 +81,7 @@ function IncomingCallModal() {
   );
 }
 
-function ActiveCallPanel() {
+function ActiveCallPanel({ onMinimize }) {
   const { t } = useLanguage();
   const {
     remoteUser,
@@ -130,11 +132,16 @@ function ActiveCallPanel() {
             <h2>{remoteUser?.displayName || remoteUser?.username}</h2>
             <p>{statusText}</p>
           </div>
-          <div className="voice-call-header-avatar">
-            <AvatarImage
-              url={remoteUser?.avatarUrl}
-              fallback={remoteUser?.username?.[0] || '?'}
-            />
+          <div className="voice-call-header-actions">
+            <div className="voice-call-header-avatar">
+              <AvatarImage
+                url={remoteUser?.avatarUrl}
+                fallback={remoteUser?.username?.[0] || '?'}
+              />
+            </div>
+            <button type="button" className="voice-call-window-btn" onClick={onMinimize} title="Свернуть звонок" aria-label="Свернуть звонок">
+              <FaMinus />
+            </button>
           </div>
         </header>
 
@@ -248,11 +255,6 @@ function ActiveCallPanel() {
           </button>
         </div>
       </div>
-      {deafened && remoteStream ? (
-        <audio autoPlay playsInline ref={(el) => { if (el) el.srcObject = null; }} hidden />
-      ) : (
-        <RemoteAudio stream={remoteStream} muted={deafened} />
-      )}
     </div>
   );
 }
@@ -269,7 +271,8 @@ function RemoteAudio({ stream, muted }) {
 }
 
 export default function VoiceCall() {
-  const { phase, errorKey, setErrorKey } = useCall();
+  const { phase, errorKey, setErrorKey, remoteStream, deafened, hangUp, remoteUser, connectionState } = useCall();
+  const [minimized, setMinimized] = useState(false);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -277,6 +280,10 @@ export default function VoiceCall() {
     const timer = setTimeout(() => setErrorKey(''), 5000);
     return () => clearTimeout(timer);
   }, [errorKey, setErrorKey]);
+
+  useEffect(() => {
+    if (phase === 'idle' || phase === 'incoming') setMinimized(false);
+  }, [phase]);
 
   if (phase === 'idle') {
     return errorKey ? (
@@ -295,8 +302,16 @@ export default function VoiceCall() {
       ) : null}
       {phase === 'incoming' && <IncomingCallModal />}
       {(phase === 'outgoing' || phase === 'connecting' || phase === 'active') && (
-        <ActiveCallPanel />
+        minimized ? (
+          <div className="voice-call-minimized" role="status">
+            <div className="voice-call-minimized-avatar"><AvatarImage url={remoteUser?.avatarUrl} fallback={remoteUser?.displayName?.[0] || remoteUser?.username?.[0] || '?'} /></div>
+            <div className="voice-call-minimized-info"><strong>{remoteUser?.displayName || remoteUser?.username || 'Звонок'}</strong><span>{connectionState === 'connected' ? 'На связи' : 'Подключение…'}</span></div>
+            <button type="button" className="voice-call-window-btn" onClick={() => setMinimized(false)} title="Развернуть звонок" aria-label="Развернуть звонок"><FaExpand /></button>
+            <button type="button" className="voice-call-tool voice-call-tool--hangup" onClick={hangUp} title={t('callHangUp')} aria-label={t('callHangUp')}><FaPhoneSlash /></button>
+          </div>
+        ) : <ActiveCallPanel onMinimize={() => setMinimized(true)} />
       )}
+      {phase !== 'incoming' && <RemoteAudio stream={remoteStream} muted={deafened} />}
     </>
   );
 }
