@@ -111,6 +111,10 @@ export function CallProvider({ enabled, children }) {
       peer.onRemoteStream = (stream) => {
         setRemoteStream(stream);
       };
+      peer.onScreenShareEnded = () => {
+        setScreenStream(null);
+        setScreenSharing(false);
+      };
       peer.onConnectionState = (state) => {
         setConnectionState(state);
         if (state === 'connected') {
