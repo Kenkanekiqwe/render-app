@@ -75,6 +75,8 @@ export class CallPeer {
     this.localStream = null;
     this.screenStream = null;
     this.screenSender = null;
+    this.screenAudioSender = null;
+    this.videoSender = null;
     this.isCaller = false;
     this.withVideo = false;
     this.remoteMediaStream = null;
@@ -118,8 +120,17 @@ export class CallPeer {
     });
 
     this.localStream.getTracks().forEach((track) => {
-      this.pc.addTrack(track, this.localStream);
+      const sender = this.pc.addTrack(track, this.localStream);
+      if (track.kind === 'video') this.videoSender = sender;
     });
+
+    // Negotiate a video sender even for voice-only calls, so screen sharing
+    // can start without a second SDP negotiation after the call is connected.
+    if (!this.videoSender) {
+      this.videoSender = this.pc.addTransceiver('video', { direction: 'sendrecv' }).sender;
+    }
+    // Pre-negotiate a sender for optional system audio as well.
+    this.screenAudioSender = this.pc.addTransceiver('audio', { direction: 'sendrecv' }).sender;
 
     this.pc.ontrack = (event) => {
       let stream = event.streams?.[0];
@@ -245,16 +256,16 @@ export class CallPeer {
     };
 
     const audioTrack = this.screenStream.getAudioTracks()[0];
-    const sender = this.pc.getSenders().find((s) => s.track?.kind === 'video');
-    if (sender) {
-      await sender.replaceTrack(videoTrack);
-      this.screenSender = sender;
-    } else {
-      this.screenSender = this.pc.addTrack(videoTrack, this.screenStream);
+    const sender = this.videoSender || this.pc.getSenders().find((s) => s.track?.kind === 'video');
+    if (!sender) {
+      await this.stopScreenShare();
+      throw new Error('no_video_sender');
     }
+    await sender.replaceTrack(videoTrack);
+    this.screenSender = sender;
 
-    if (audioTrack) {
-      this.pc.addTrack(audioTrack, this.screenStream);
+    if (this.screenAudioSender) {
+      await this.screenAudioSender.replaceTrack(audioTrack || null);
     }
 
     this.setVideoEnabled(false);
@@ -276,6 +287,13 @@ export class CallPeer {
       }
     }
     this.screenSender = null;
+    if (this.screenAudioSender) {
+      try {
+        await this.screenAudioSender.replaceTrack(null);
+      } catch {
+        // Peer connection may already be closed.
+      }
+    }
 
     if (restoreCamera && this.withVideo) {
       this.setVideoEnabled(true);
