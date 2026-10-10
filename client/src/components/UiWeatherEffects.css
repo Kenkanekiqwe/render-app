@@ -1,0 +1,16 @@
+.ui-weather-effects {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+html.theme-light .ui-weather-effects {
+  opacity: 0.65;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+}

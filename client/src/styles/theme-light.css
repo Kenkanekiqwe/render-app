@@ -1,0 +1,383 @@
+html.theme-light .liquid-glass::before,
+html.theme-light .glass-shine::before {
+  background: linear-gradient(180deg, var(--ui-shine-top) 0%, transparent 45%);
+}
+
+html.theme-light .liquid-glass::after,
+html.theme-light .glass-shine::after {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 42%,
+    var(--ui-shine-sweep) 50%,
+    transparent 58%,
+    transparent 100%
+  );
+}
+
+html.theme-light .glass-search::before {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 42%,
+    var(--ui-shine-soft) 50%,
+    transparent 58%,
+    transparent 100%
+  );
+}
+
+html.theme-light .glass-search:focus-within {
+  border-color: var(--ui-border-strong);
+  box-shadow: 0 8px 24px var(--ui-panel-shadow);
+}
+
+html.theme-light .search-icon {
+  color: var(--ui-text-soft);
+}
+
+html.theme-light .search-spinner {
+  border-color: var(--ui-border-strong);
+  border-top-color: var(--ui-text-strong);
+}
+
+html.theme-light .wave-line,
+html.theme-light .my-wave-banner--active .wave-line {
+  stroke: var(--ui-wave-stroke);
+}
+
+html.theme-light .my-wave-banner--live .wave-line {
+  stroke: hsl(var(--app-accent-hue, 265), var(--app-accent-sat, 70%), 42%);
+}
+
+html.theme-light .track-drop-line {
+  background: var(--ui-text-strong);
+}
+
+html.theme-light .settings-accent-dot {
+  border-color: var(--ui-border-strong);
+}
+
+html.theme-light .settings-accent-dot.selected {
+  border-color: var(--ui-text-strong);
+  box-shadow: 0 0 0 3px var(--ui-border);
+}
+
+html.theme-light .settings-hero,
+html.theme-light .settings-panel,
+html.theme-light .settings-card,
+html.theme-light .settings-tab,
+html.theme-light .bottom-dock,
+html.theme-light .bottom-chrome__player,
+html.theme-light .modal-card,
+html.theme-light .modal-overlay,
+html.theme-light .quick-card,
+html.theme-light .my-wave-banner,
+html.theme-light .library-playlist-card,
+html.theme-light .playlist-card,
+html.theme-light .artist-media-card,
+html.theme-light .artist-result-card,
+html.theme-light .artist-card,
+html.theme-light .profile-playlist-card,
+html.theme-light .sc-pl-hero,
+html.theme-light .artist-profile-hero {
+  border-color: var(--ui-border);
+}
+
+html.theme-light .settings-toggle-row span,
+html.theme-light .settings-toggle-copy span,
+html.theme-light .settings-slider-field span,
+html.theme-light .settings-hero-text p,
+html.theme-light .settings-panel-head,
+html.theme-light .wave-live-badge,
+html.theme-light .sc-badge,
+html.theme-light .playlist-badge,
+html.theme-light .artist-media-badge {
+  color: var(--ui-text-muted);
+}
+
+html.theme-light .wave-play-btn,
+html.theme-light .wave-settings-btn,
+html.theme-light .scroll-card-play-btn,
+html.theme-light .profile-playlist-play,
+html.theme-light .sc-pl-play-btn,
+html.theme-light .artist-play-btn {
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--ui-text-strong);
+}
+
+html.theme-light .progress-slider-track,
+html.theme-light .volume-slider-track,
+html.theme-light .progress-bar,
+html.theme-light .volume-slider-track {
+  background: var(--player-progress-track);
+}
+
+html.theme-light .progress-fill,
+html.theme-light .volume-slider-fill {
+  background: var(--player-progress-fill);
+}
+
+html.theme-light .track-menu-btn,
+html.theme-light .scroll-card-add .track-menu-btn {
+  background: rgba(15, 23, 42, 0.08);
+  border-color: var(--ui-border);
+  color: var(--ui-text-strong);
+}
+
+html.theme-light .main-header,
+html.theme-light .popular-section,
+html.theme-light .content-body,
+html.theme-light .settings-page,
+html.theme-light .profile-page,
+html.theme-light .artist-view,
+html.theme-light .sc-pl-page {
+  color: var(--ui-text);
+}
+
+html.theme-light .liquid-glass,
+html.theme-light .glass-shine {
+  box-shadow:
+    0 6px 20px var(--ui-shadow),
+    inset 0 1px 0 var(--ui-inset-line);
+}
+
+html.theme-light .liquid-glass:hover {
+  box-shadow:
+    0 8px 24px var(--ui-shadow),
+    inset 0 1px 0 var(--ui-inset-line);
+}
+
+html.theme-light .delete-playlist-btn,
+html.theme-light .sc-pl-back,
+html.theme-light .profile-edit-btn {
+  color: var(--ui-text-soft);
+  border-color: var(--ui-border);
+}
+
+html.theme-light .static-id-badge {
+  color: hsl(var(--app-accent-hue, 265), var(--app-accent-sat, 70%), 38%);
+  background: var(--ui-surface);
+  border-color: var(--ui-border-strong);
+}
+
+html.theme-light .settings-hero-kicker {
+  color: hsl(var(--app-accent-hue, 265), var(--app-accent-sat, 70%), 38%);
+}
+
+html.theme-light .bottom-dock .dock-btn:hover {
+  background: var(--ui-surface-hover);
+}
+
+html.theme-light .track-info img,
+html.theme-light .track-cover-wrap {
+  box-shadow: 0 4px 12px var(--ui-shadow);
+  border-color: var(--ui-border);
+}
+
+html.theme-light .reorderable .track-drag-handle {
+  color: var(--ui-text-faint);
+}
+
+html.theme-light .modal-overlay {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+html.theme-light .profile-banner-overlay {
+  background: linear-gradient(to bottom, transparent, rgba(236, 239, 243, 0.85));
+}
+
+html.theme-light .app-brand,
+html.theme-light .top-bar-center h1 {
+  color: var(--ui-text-medium);
+}
+
+html.theme-light .app-version {
+  color: var(--ui-text-faint);
+}
+
+html.theme-light .section-title,
+html.theme-light .popular-subtitle,
+html.theme-light .scroll-card-title,
+html.theme-light .artist-name,
+html.theme-light .main-header h2,
+html.theme-light .search-results h3,
+html.theme-light .track-title,
+html.theme-light .player-track-title,
+html.theme-light .settings-hero-text h2,
+html.theme-light .settings-panel-head h3,
+html.theme-light .settings-card h4,
+html.theme-light .profile-name,
+html.theme-light .artist-section-title,
+html.theme-light .artist-profile-info h1,
+html.theme-light .sc-pl-info h1 {
+  color: var(--ui-text-strong);
+}
+
+html.theme-light .scroll-card-sub,
+html.theme-light .track-artist,
+html.theme-light .track-album,
+html.theme-light .track-duration,
+html.theme-light .player-track-artist,
+html.theme-light .loading-message,
+html.theme-light .no-results,
+html.theme-light .wave-hint,
+html.theme-light .quick-card-text p,
+html.theme-light .settings-card-desc,
+html.theme-light .settings-card-head p,
+html.theme-light .profile-bio,
+html.theme-light .artist-media-sub,
+html.theme-light .sc-pl-subtitle,
+html.theme-light .sc-pl-description,
+html.theme-light .sc-pl-meta {
+  color: var(--ui-text-muted);
+}
+
+html.theme-light .quick-card-text h4,
+html.theme-light .wave-banner-text h3,
+html.theme-light .settings-toggle-row strong {
+  color: var(--ui-text-medium);
+}
+
+html.theme-light .glass-search,
+html.theme-light .search-page-bar,
+html.theme-light .modal-card,
+html.theme-light .quick-card,
+html.theme-light .my-wave-banner,
+html.theme-light .playlist-card,
+html.theme-light .library-playlist-card {
+  background: var(--ui-surface);
+}
+
+html.theme-light .glass-search input,
+html.theme-light .settings-card input,
+html.theme-light .settings-card textarea,
+html.theme-light .modal-card input,
+html.theme-light .modal-card textarea {
+  background: var(--ui-input-bg);
+  border-color: var(--ui-border);
+  color: var(--ui-text-strong);
+}
+
+html.theme-light .glass-search input::placeholder,
+html.theme-light .modal-card input::placeholder {
+  color: var(--ui-text-faint);
+}
+
+html.theme-light .search-tab,
+html.theme-light .settings-tab,
+html.theme-light .settings-secondary-btn,
+html.theme-light .settings-btn--secondary,
+html.theme-light .settings-btn--ghost,
+html.theme-light .settings-font-card {
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+  color: var(--ui-text-soft);
+}
+
+html.theme-light .search-tab.active,
+html.theme-light .settings-tab.active,
+html.theme-light .settings-font-card.selected,
+html.theme-light .settings-chip.selected,
+html.theme-light .settings-theme-card.selected {
+  background: var(--accent-surface);
+  border-color: var(--accent-border);
+  color: var(--ui-text-strong);
+  box-shadow: none;
+}
+
+html.theme-light .bottom-dock .dock-btn.active .dock-btn-slide,
+html.theme-light .bottom-dock .dock-btn:hover .dock-btn-slide,
+html.theme-light .bottom-dock .dock-btn-slide.is-open {
+  background: var(--accent-surface);
+  border: 1px solid var(--accent-border);
+  box-shadow: none;
+}
+
+html.theme-light .profile-tab.active {
+  color: var(--ui-text-strong);
+  border-color: var(--ui-border-strong);
+  background: var(--accent-surface);
+}
+
+html.theme-light .track-item {
+  border-bottom-color: var(--ui-border);
+}
+
+html.theme-light .track-item:hover,
+html.theme-light .track-item.active {
+  background: var(--ui-surface-hover);
+}
+
+html.theme-light .track-number .number,
+html.theme-light .track-icon,
+html.theme-light .play-icon {
+  color: var(--ui-text-soft);
+}
+
+html.theme-light .scroll-card-cover,
+html.theme-light .artist-avatar,
+html.theme-light .artist-result-avatar,
+html.theme-light .profile-playlist-cover {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+}
+
+html.theme-light .media-cover-hover:hover::after {
+  background: var(--ui-media-overlay);
+}
+
+html.theme-light .artist-link:hover {
+  color: var(--ui-text-strong);
+}
+
+html.theme-light .bottom-dock .dock-btn {
+  color: var(--dock-text);
+}
+
+html.theme-light .bottom-dock .dock-btn.active,
+html.theme-light .bottom-dock .dock-btn:hover {
+  color: var(--dock-text-active);
+}
+
+html.theme-light .bottom-dock .dock-btn-label-inner {
+  color: var(--dock-label);
+}
+
+html.theme-light .player-track-info img,
+html.theme-light .player-track-cover {
+  border-color: var(--ui-border);
+}
+
+html.theme-light .control-button,
+html.theme-light .like-button,
+html.theme-light .like-btn {
+  color: var(--player-icon);
+}
+
+html.theme-light .like-button {
+  color: var(--player-icon-muted);
+}
+
+html.theme-light .player-track-artist {
+  color: var(--player-text-muted);
+}
+
+html.theme-light .player-track-title,
+html.theme-light .progress-time,
+html.theme-light .time {
+  color: var(--player-text);
+}
+
+html.theme-light .profile-tab,
+html.theme-light .profile-stat-label {
+  color: var(--ui-text-muted);
+}
+
+html.theme-light .artist-stat-label,
+html.theme-light .artist-profile-bio {
+  color: var(--ui-text-muted);
+}
+
+html.theme-light .artist-stat-value {
+  color: var(--ui-text-strong);
+}

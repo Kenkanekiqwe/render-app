@@ -1,0 +1,176 @@
+html.mini-player-root,
+body.mini-player-root {
+  background: transparent !important;
+  overflow: hidden;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+body.mini-player-root #root {
+  height: 86px;
+  overflow: hidden;
+}
+
+.mini-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 86px;
+  padding: 8px 10px 8px 8px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0) 50%
+  ), var(--ui-chrome, #2a2a2e);
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.08));
+  color: var(--ui-text, #fff);
+  user-select: none;
+}
+
+.mini-player.is-floating {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: min(280px, calc(100vw - 24px));
+  height: auto;
+  min-height: 72px;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px var(--ui-shadow, rgba(0, 0, 0, 0.4));
+  z-index: 120;
+}
+
+.mini-player-drag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+  cursor: grab;
+}
+
+.mini-player.is-window .mini-player-drag {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.mini-player.is-window .mini-player-controls,
+.mini-player.is-window .mini-player-btn {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.mini-player.is-floating .mini-player-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.mini-player.is-floating.is-moved {
+  right: auto;
+  bottom: auto;
+  transform: none;
+}
+
+.mini-player-cover {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: none;
+  border-radius: var(--app-cover-radius, 14px);
+  overflow: hidden;
+  background: #111;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.mini-player-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.mini-player-meta {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mini-player-meta strong,
+.mini-player-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-player-meta strong {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ui-text-strong, #fff);
+}
+
+.mini-player-meta span {
+  font-size: 11px;
+  color: var(--ui-text-muted, rgba(255, 255, 255, 0.5));
+}
+
+.mini-player-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+
+.mini-player-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ui-text-medium, rgba(255, 255, 255, 0.8));
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.mini-player-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.mini-player-btn:hover {
+  background: var(--ui-surface-hover, rgba(255, 255, 255, 0.1));
+  color: var(--ui-text-strong, #fff);
+}
+
+.mini-player-btn:active {
+  transform: scale(0.94);
+}
+
+.mini-player-btn.is-play {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--player-play-bg, #fff);
+  color: var(--player-play-fg, #111);
+}
+
+.mini-player-btn.is-play:hover,
+.mini-player-btn.is-play:focus-visible {
+  background: var(--player-play-bg, #fff);
+  color: var(--player-play-fg, #111);
+  transform: scale(1.06);
+  filter: brightness(1.08);
+}
+
+.mini-player-controls,
+.mini-player-btn {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}

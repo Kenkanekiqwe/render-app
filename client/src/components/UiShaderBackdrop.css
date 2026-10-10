@@ -1,0 +1,18 @@
+.ui-shader-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.9;
+  mix-blend-mode: screen;
+}
+
+html.theme-light .ui-shader-backdrop {
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+}

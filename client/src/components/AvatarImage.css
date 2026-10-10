@@ -1,0 +1,16 @@
+.avatar-image {
+  display: block;
+  max-width: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  border-radius: inherit;
+}

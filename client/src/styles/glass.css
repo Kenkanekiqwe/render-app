@@ -1,0 +1,42 @@
+.liquid-glass,
+.glass-shine {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0) 42%
+  ), var(--ui-chrome);
+  border: 1px solid var(--ui-border);
+  box-shadow: 0 8px 22px var(--ui-shadow);
+  backdrop-filter: blur(var(--glass-blur, 16px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 16px));
+}
+
+.liquid-glass::before,
+.glass-shine::before,
+.liquid-glass::after,
+.glass-shine::after {
+  display: none;
+}
+
+html.theme-light .liquid-glass,
+html.theme-light .glass-shine {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(255, 255, 255, 0.15) 40%
+  ), var(--ui-chrome);
+}
+
+@keyframes dockFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

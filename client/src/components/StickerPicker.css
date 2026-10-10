@@ -1,0 +1,280 @@
+.sticker-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.sticker-picker {
+  width: min(420px, 100%);
+  max-height: min(70vh, 520px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px 16px 12px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--ui-bg, #141418);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.sticker-picker__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.sticker-picker__close {
+  margin-left: auto;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sticker-picker__tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  overflow-x: auto;
+}
+
+.sticker-picker__tab {
+  flex: 1 0 auto;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sticker-picker__tab.is-active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.sticker-picker__error {
+  color: #ff8a8a;
+  font-size: 0.76rem;
+  padding: 0 12px 8px;
+  margin: 0;
+}
+
+.sticker-picker__loading,
+.sticker-picker__empty {
+  padding: 16px 12px;
+  opacity: 0.6;
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.sticker-picker__packs,
+.sticker-picker__grid {
+  padding: 8px 10px 12px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sticker-pack-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  cursor: pointer;
+}
+
+.sticker-pack-card img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.sticker-pack-card__placeholder {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  opacity: 0.4;
+}
+
+.sticker-pack-card__name {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sticker-pack-card__count {
+  font-size: 0.62rem;
+  opacity: 0.5;
+}
+
+.sticker-picker__detail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.sticker-picker__back {
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.sticker-picker__btn {
+  margin: 0 12px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.sticker-item {
+  border: none;
+  background: transparent;
+  padding: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sticker-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sticker-item img {
+  width: 100%;
+  max-height: 72px;
+  object-fit: contain;
+}
+
+.sticker-picker__create,
+.sticker-picker__gif {
+  padding: 10px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sticker-picker__create-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sticker-picker__create input,
+.sticker-picker__create select,
+.sticker-picker__gif input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+  font-size: 0.82rem;
+}
+
+.sticker-picker__label {
+  font-size: 0.72rem;
+  opacity: 0.65;
+}
+
+.chat-message-sticker,
+.chat-message-gif {
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  max-width: 180px;
+}
+
+.chat-message-gif {
+  position: relative;
+}
+
+.chat-message-sticker img,
+.chat-message-gif img {
+  display: block;
+  width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.chat-message-gif__label {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.chat-toolbar {
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 8px;
+}
+
+.chat-tool-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.chat-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.chat-send-btn {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff !important;
+}

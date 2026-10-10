@@ -1,0 +1,13 @@
+.static-id {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: hsl(var(--app-accent-hue, 265), var(--app-accent-sat, 78%), 78%);
+  background: hsla(var(--app-accent-hue, 265), var(--app-accent-sat, 70%), 58%, 0.12);
+  border: 1px solid hsla(var(--app-accent-hue, 265), var(--app-accent-sat, 70%), 58%, 0.28);
+  user-select: text;
+}

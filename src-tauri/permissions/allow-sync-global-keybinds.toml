@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-sync-global-keybinds"
+description = "Allows syncing OS-level global keybinds."
+commands.allow = ["sync_global_keybinds"]

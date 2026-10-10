@@ -1,0 +1,396 @@
+/* Workshop — quiet product UI matching Marketplace / Settings */
+
+.workshop-page {
+  --ws-accent: var(--accent-text, hsl(265 70% 68%));
+  --ws-accent-bg: var(--accent-surface, rgba(124, 92, 255, 0.12));
+  --ws-accent-border: var(--accent-border, rgba(124, 92, 255, 0.38));
+  --ws-radius: 12px;
+  --ws-radius-sm: 8px;
+
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 16px clamp(12px, 2.5vw, 28px) calc(var(--bottom-chrome-height) + 24px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  font-family: var(--app-font, system-ui, sans-serif);
+  color: var(--ui-text);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.workshop-page :where(button, input, select, textarea, h1, h2, h3, p, span, label) {
+  font-family: inherit;
+}
+
+/* —— Header —— */
+.workshop-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.workshop-header h1 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: var(--ui-text-strong);
+}
+
+.workshop-header p {
+  margin: 0;
+  max-width: 480px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ui-text-muted);
+}
+
+/* —— Publish form —— */
+.workshop-form {
+  padding: 14px 16px 16px;
+  border-radius: var(--ws-radius);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workshop-form h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ui-text-strong);
+}
+
+.workshop-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 8px;
+}
+
+.workshop-form-wide {
+  grid-column: 1 / -1;
+}
+
+.workshop-form input,
+.workshop-form select {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: var(--ws-radius-sm);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-input-bg);
+  color: var(--ui-text-strong);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.workshop-form input::placeholder {
+  color: var(--ui-text-faint);
+}
+
+.workshop-form input:focus,
+.workshop-form select:focus {
+  border-color: var(--ws-accent-border);
+  box-shadow: 0 0 0 3px var(--ws-accent-bg);
+}
+
+.workshop-form select {
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ui-text-muted) 50%),
+    linear-gradient(135deg, var(--ui-text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+}
+
+.workshop-form-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* —— Filters —— */
+.workshop-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.workshop-filter {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: var(--ws-radius-sm);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-input-bg);
+  color: var(--ui-text-medium);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.workshop-filter:hover {
+  color: var(--ui-text-strong);
+  border-color: var(--ui-border-strong);
+  background: var(--ui-surface-hover);
+}
+
+.workshop-filter.active {
+  color: var(--ui-text-strong);
+  border-color: var(--ws-accent-border);
+  background: var(--ws-accent-bg);
+}
+
+/* —— Grid & cards —— */
+.workshop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.workshop-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--ws-radius);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface);
+  overflow: hidden;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.workshop-card:hover {
+  border-color: var(--ui-border-strong);
+  background: var(--ui-surface-hover);
+}
+
+.workshop-preview {
+  height: 128px;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--ui-input-bg);
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.workshop-preview--avatar {
+  height: 148px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-color: var(--ui-input-bg);
+}
+
+.workshop-preview--banner {
+  height: 110px;
+}
+
+.workshop-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.workshop-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.workshop-card-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ui-text-strong);
+  line-height: 1.3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workshop-type {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 650;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--ui-input-bg);
+  border: 1px solid var(--ui-border);
+  color: var(--ui-text-soft);
+}
+
+.workshop-card-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ui-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.workshop-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ui-text-soft);
+}
+
+.workshop-author .avatar-fallback,
+.workshop-author img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.workshop-author > span:nth-of-type(1) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.workshop-uses {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-text-muted);
+}
+
+.workshop-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+
+/* —— Buttons —— */
+.workshop-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 11px;
+  border-radius: var(--ws-radius-sm);
+  border: 1px solid var(--ui-border);
+  background: transparent;
+  color: var(--ui-text-medium);
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.workshop-btn svg {
+  width: 11px;
+  height: 11px;
+  font-size: 11px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.workshop-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.workshop-btn-primary {
+  border-color: var(--ws-accent-border);
+  background: var(--ws-accent-bg);
+  color: var(--ui-text-strong);
+}
+
+.workshop-btn-primary:hover:not(:disabled) {
+  background: var(--accent-surface-hover, hsla(var(--app-accent-hue, 265), var(--app-accent-sat, 45%), 48%, 0.28));
+  color: var(--ui-text-strong);
+}
+
+.workshop-btn-ghost {
+  background: transparent;
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.workshop-btn-ghost:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+.workshop-card-actions .workshop-btn-primary {
+  flex: 1;
+}
+
+.workshop-card-actions .workshop-btn-ghost {
+  flex: 0 0 auto;
+}
+
+/* —— States —— */
+.workshop-empty {
+  margin: 0;
+  padding: 36px 20px;
+  text-align: center;
+  border-radius: var(--ws-radius);
+  border: 1px dashed var(--ui-border);
+  background: var(--ui-surface);
+  color: var(--ui-text-muted);
+  font-size: 13px;
+}
+
+.workshop-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.22);
+}
+
+.workshop-loading {
+  margin: 0;
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--ui-text-muted);
+  font-size: 13px;
+}
+
+/* —— Responsive —— */
+@media (max-width: 640px) {
+  .workshop-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workshop-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  .workshop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

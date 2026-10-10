@@ -1,0 +1,273 @@
+.bottom-dock {
+  position: fixed;
+  right: 16px;
+  bottom: var(--bottom-chrome-offset, 16px);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 14px;
+  pointer-events: auto;
+  overflow: visible;
+  background: color-mix(in srgb, var(--ui-chrome) calc(var(--app-panel-opacity, 0.88) * 100%), transparent);
+  border: 1px solid var(--ui-border);
+  box-shadow: 0 8px 20px var(--ui-shadow);
+  backdrop-filter: blur(var(--glass-blur, 0px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px));
+}
+
+.bottom-dock.liquid-glass {
+  overflow: visible;
+}
+
+.dock-nav,
+.dock-user {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dock-user {
+  gap: 4px;
+}
+
+.dock-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--dock-divider);
+  flex-shrink: 0;
+}
+
+.dock-btn {
+  --dock-size: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--dock-text);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.dock-btn-slide {
+  display: inline-flex;
+  align-items: center;
+  height: var(--dock-size);
+  width: var(--dock-size);
+  overflow: hidden;
+  border-radius: 10px;
+  background: transparent;
+  box-sizing: border-box;
+  transition: background 0.15s ease, width 0.18s ease;
+}
+
+.dock-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--dock-size);
+  width: var(--dock-size);
+  height: var(--dock-size);
+  font-size: 14px;
+}
+
+.dock-btn-label {
+  flex: 0 0 auto;
+}
+
+.dock-btn-label-inner {
+  display: inline-block;
+  padding-right: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--dock-label);
+}
+
+.dock-btn.active {
+  color: var(--dock-text-active);
+}
+
+.dock-btn-slide.is-open,
+.dock-btn.active .dock-btn-slide {
+  background: var(--accent-surface);
+}
+
+.dock-btn:hover,
+.dock-btn:focus-visible {
+  color: var(--dock-text-active);
+  outline: none;
+}
+
+.dock-btn:hover .dock-btn-slide,
+.dock-btn:focus-visible .dock-btn-slide {
+  background: var(--accent-surface-hover);
+}
+
+.dock-avatar-btn,
+.dock-settings-btn {
+  --dock-size: 34px;
+}
+
+.dock-avatar-btn {
+  --dock-size: 42px;
+  position: relative;
+  width: var(--dock-size);
+  height: var(--dock-size);
+  flex-shrink: 0;
+  overflow: visible;
+  z-index: 5;
+}
+
+.dock-avatar-btn .dock-btn-icon--pinned {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: var(--dock-size);
+  height: var(--dock-size);
+  flex: none;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  pointer-events: none;
+}
+
+.dock-avatar-btn .dock-btn-slide {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+  height: var(--dock-size);
+  width: var(--dock-size);
+  padding: 0;
+  padding-right: var(--dock-size);
+  box-sizing: border-box;
+  overflow: hidden;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.045) 0%,
+    rgba(255, 255, 255, 0) 55%
+  ), color-mix(in srgb, var(--ui-chrome) calc(var(--app-panel-opacity, 0.88) * 100%), transparent);
+  box-shadow: 0 6px 16px var(--ui-shadow);
+  border: 1px solid var(--ui-border);
+  backdrop-filter: blur(var(--glass-blur, 0px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px));
+}
+
+.dock-avatar-btn.active .dock-btn-slide,
+.dock-avatar-btn:hover .dock-btn-slide,
+.dock-avatar-btn:focus-visible .dock-btn-slide,
+.dock-avatar-btn .dock-btn-slide.is-open {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0) 55%
+  ), var(--ui-chrome);
+}
+
+.dock-avatar-frame {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--ui-border-strong);
+  overflow: hidden;
+  box-sizing: border-box;
+  display: block;
+  flex-shrink: 0;
+  background: var(--ui-panel-bg, #1c1c20);
+}
+
+.dock-avatar-btn:hover .dock-avatar-frame,
+.dock-avatar-btn:focus-visible .dock-avatar-frame {
+  border-color: var(--accent-border);
+}
+
+.dock-avatar-btn.active .dock-avatar-frame {
+  border-color: var(--accent-fill);
+}
+
+.dock-avatar-frame .dock-avatar-img,
+.dock-avatar-frame .avatar-image,
+.dock-avatar-frame .avatar-fallback {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+  display: block;
+  font-size: 12px;
+}
+
+.dock-avatar-btn .dock-btn-label {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.dock-avatar-btn .dock-btn-label-inner {
+  padding: 0 6px 0 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .bottom-dock {
+    right: 12px;
+    padding: 5px 6px;
+  }
+
+  .dock-btn {
+    --dock-size: 32px;
+  }
+
+  .dock-btn-icon {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 520px) {
+  .bottom-dock {
+    left: 12px;
+    right: 12px;
+    justify-content: center;
+  }
+}
+
+.compact-dock .bottom-dock,
+.compact-ui .bottom-dock {
+  padding: 4px 6px;
+  gap: 4px;
+}
+
+.compact-dock .dock-btn,
+.compact-ui .dock-btn {
+  --dock-size: 30px;
+}
+
+.compact-dock .dock-divider,
+.compact-ui .dock-divider {
+  height: 20px;
+}
+
+
+/* —— Dock chrome align —— */
+html[data-layout="solid"] .bottom-dock {
+  border-radius: 12px;
+  right: 12px;
+}
+
+html[data-topbar="solid"] .top-bar .dock-avatar-btn .dock-btn-slide {
+  box-shadow: none;
+}

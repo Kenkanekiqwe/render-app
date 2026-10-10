@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-discord-presence"
+description = "Allows updating Discord Rich Presence from the desktop app."
+commands.allow = ["init_discord_presence", "update_discord_presence", "clear_discord_presence"]

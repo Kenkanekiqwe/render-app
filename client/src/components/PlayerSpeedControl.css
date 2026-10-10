@@ -1,0 +1,69 @@
+﻿.player-speed {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.player-speed-chip {
+  min-width: 38px;
+  height: 22px;
+  padding: 0 7px;
+  border: 1px solid var(--ui-border, rgba(255, 255, 255, 0.12));
+  border-radius: 999px;
+  background: var(--player-control-hover, rgba(255, 255, 255, 0.06));
+  color: var(--player-text, #fff);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.player-speed-chip.is-active,
+.player-speed-chip.is-open {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.player-speed-menu {
+  min-width: 72px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(18, 18, 22, 0.96);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.player-speed-menu button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+.player-speed-menu button:hover,
+.player-speed-menu button.is-active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+html.theme-light .player-speed-menu {
+  background: rgba(250, 250, 252, 0.98);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #18181b;
+}
+
+html.theme-light .player-speed-menu button:hover,
+html.theme-light .player-speed-menu button.is-active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.player-speed-menu { pointer-events: auto; }
+
