@@ -141,13 +141,16 @@ export class CallPeer {
       if (event.track && !stream.getTracks().some((track) => track.id === event.track.id)) {
         stream.addTrack(event.track);
       }
+      const notifyTrackState = () => this.onRemoteStream?.(stream, event.track);
+      event.track?.addEventListener('unmute', notifyTrackState);
+      event.track?.addEventListener('mute', notifyTrackState);
       event.track?.addEventListener('ended', () => {
         try {
           stream.removeTrack(event.track);
         } catch {
           // The peer may already be closing.
         }
-        this.onRemoteStream?.(stream, event.track);
+        notifyTrackState();
       }, { once: true });
       if (this.onRemoteStream) this.onRemoteStream(stream, event.track);
     };
