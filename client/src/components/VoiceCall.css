@@ -517,3 +517,78 @@
     transition: none;
   }
 }
+
+
+/* Minimize controls and a compact call dock that stays available while the call continues. */
+.voice-call-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.voice-call-window-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.88);
+  cursor: pointer;
+}
+.voice-call-window-btn:hover {
+  background: rgba(255,255,255,.13);
+}
+.voice-call-minimized {
+  position: fixed;
+  z-index: 11950;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(360px, calc(100vw - 28px));
+  padding: 12px;
+  color: #f8f8fb;
+  background: rgba(24, 24, 31, .97);
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 18px;
+  box-shadow: 0 16px 54px rgba(0,0,0,.48);
+  backdrop-filter: blur(18px);
+}
+.voice-call-minimized-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+.voice-call-minimized-info {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+.voice-call-minimized-info strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.voice-call-minimized-info span {
+  color: rgba(255,255,255,.58);
+  font-size: 12px;
+}
+.voice-call-minimized .voice-call-tool {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+}
+@media (max-width: 600px) {
+  .voice-call-minimized {
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
