@@ -106,14 +106,13 @@ function ActiveCallPanel({ onMinimize }) {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const remoteVideo = remoteStream?.getVideoTracks?.().some((tr) => tr.enabled)
-    ? remoteStream
-    : null;
-  const localVideo = screenSharing
-    ? screenStream
-    : withVideo && videoEnabled
-      ? localStream
-      : null;
+  const remoteVideo = remoteStream?.getVideoTracks?.().some(
+    (track) => track.readyState === 'live'
+  ) ? remoteStream : null;
+  const localCamera = withVideo && videoEnabled ? localStream : null;
+  const localVideo = screenSharing ? screenStream : localCamera;
+  const mainVideo = screenSharing ? localVideo : remoteVideo;
+  const pipVideo = screenSharing ? remoteVideo : localVideo;
 
   const statusText =
     phase === 'outgoing'
@@ -145,16 +144,22 @@ function ActiveCallPanel({ onMinimize }) {
           </div>
         </header>
 
-        <div className="voice-call-stage">
-          {remoteVideo || localVideo ? (
+        <div className={`voice-call-stage${screenSharing ? ' is-screen-share' : ''}`}>
+          {mainVideo || pipVideo ? (
             <>
-              <VideoTile stream={remoteVideo || null} label={t('callRemoteVideo')} className="voice-call-tile--main" />
               <VideoTile
-                stream={localVideo}
-                muted
-                label={screenSharing ? t('callYourScreen') : t('callYou')}
+                stream={mainVideo}
+                muted={screenSharing}
+                label={screenSharing ? t('callYourScreen') : t('callRemoteVideo')}
+                className="voice-call-tile--main"
+              />
+              <VideoTile
+                stream={pipVideo}
+                muted={!screenSharing}
+                label={screenSharing ? t('callRemoteVideo') : t('callYou')}
                 className="voice-call-tile--pip"
               />
+              {screenSharing && <div className="voice-call-share-badge"><FaDesktop /> Демонстрация экрана</div>}
             </>
           ) : (
             <div className="voice-call-audio-only">
@@ -165,6 +170,7 @@ function ActiveCallPanel({ onMinimize }) {
                 />
               </div>
               <p>{statusText}</p>
+              <span className="voice-call-audio-caption">Голосовой звонок</span>
             </div>
           )}
         </div>
