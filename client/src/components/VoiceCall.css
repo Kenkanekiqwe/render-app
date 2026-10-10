@@ -592,3 +592,197 @@
     bottom: max(12px, env(safe-area-inset-bottom));
   }
 }
+
+
+/* Refreshed call UI: clearer hierarchy, larger stage and visible share state. */
+.voice-call-overlay {
+  padding: clamp(12px, 3vw, 34px);
+  background: rgba(5, 6, 10, .84);
+  backdrop-filter: blur(16px) saturate(125%);
+}
+.voice-call-panel {
+  width: min(1180px, 100%);
+  max-height: min(94dvh, 900px);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 24px;
+  background: #111217;
+  box-shadow: 0 34px 110px rgba(0,0,0,.7);
+}
+.voice-call-header {
+  min-height: 84px;
+  padding: 18px 24px;
+  border-bottom-color: rgba(255,255,255,.09);
+  background: linear-gradient(110deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+}
+.voice-call-header h2 {
+  font-size: clamp(17px, 2vw, 22px);
+  letter-spacing: -.025em;
+}
+.voice-call-header p {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 6px;
+}
+.voice-call-header p::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #53d89a;
+  box-shadow: 0 0 12px rgba(83,216,154,.6);
+}
+.voice-call-stage {
+  min-height: clamp(280px, 56dvh, 690px);
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(67,70,90,.18), transparent 55%),
+    #090a0e;
+  overflow: hidden;
+}
+.voice-call-stage.is-screen-share {
+  background: #050506;
+}
+.voice-call-tile--main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #050506;
+}
+.voice-call-tile--main video {
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+}
+.voice-call-tile--pip {
+  right: 22px;
+  bottom: 22px;
+  width: clamp(150px, 22%, 280px);
+  aspect-ratio: 16 / 10;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 16px;
+  background: #16171c;
+  box-shadow: 0 12px 36px rgba(0,0,0,.58);
+}
+.voice-call-tile--pip video {
+  object-fit: contain;
+}
+.voice-call-tile-label {
+  left: 10px;
+  bottom: 10px;
+  padding: 6px 9px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(8,9,12,.78);
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+}
+.voice-call-share-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 12px;
+  background: rgba(18,20,26,.88);
+  color: #f4f4f6;
+  font-size: 12px;
+  font-weight: 650;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  backdrop-filter: blur(10px);
+}
+.voice-call-audio-only {
+  min-height: inherit;
+  color: rgba(255,255,255,.76);
+  background: radial-gradient(ellipse at center, rgba(120,108,180,.1), transparent 55%);
+}
+.voice-call-audio-caption {
+  color: rgba(255,255,255,.4);
+  font-size: 12px;
+}
+.voice-call-toolbar {
+  gap: 14px;
+  padding: 18px 24px 22px;
+  background: #111217;
+  border-top: 1px solid rgba(255,255,255,.09);
+}
+.voice-call-tool {
+  width: 52px;
+  height: 52px;
+  flex-basis: 52px;
+  border-radius: 17px;
+  background: #23242b;
+  border-color: rgba(255,255,255,.1);
+  font-size: 18px;
+}
+.voice-call-tool:hover {
+  background: #30313a;
+  border-color: rgba(255,255,255,.22);
+}
+.voice-call-tool.is-active {
+  color: #dcd4ff;
+  background: rgba(137,112,255,.2);
+  border-color: rgba(169,154,255,.6);
+}
+.voice-call-tool--hangup,
+.voice-call-tool--hangup:hover {
+  color: #fff;
+  background: #df414b;
+  border-color: #f05c65;
+}
+.voice-call-window-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+}
+.voice-call-minimized {
+  background: rgba(22,23,29,.98);
+  border-color: rgba(255,255,255,.16);
+  border-radius: 20px;
+}
+.voice-call-incoming-card {
+  border-radius: 28px;
+  background: linear-gradient(150deg, #20212a, #111217 70%);
+}
+.voice-call-incoming-avatar {
+  box-shadow: 0 0 0 4px rgba(140,110,255,.26), 0 10px 35px rgba(0,0,0,.25);
+}
+@media (max-width: 600px) {
+  .voice-call-overlay {
+    padding: 0;
+  }
+  .voice-call-header {
+    min-height: 72px;
+    padding: 12px 14px;
+  }
+  .voice-call-stage {
+    min-height: 0;
+  }
+  .voice-call-tile--pip {
+    right: 12px;
+    bottom: 12px;
+    width: min(140px, 38%);
+    border-radius: 12px;
+  }
+  .voice-call-share-badge {
+    top: 10px;
+    left: 10px;
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+  .voice-call-toolbar {
+    gap: 9px;
+    padding: 14px 10px max(18px, env(safe-area-inset-bottom));
+  }
+  .voice-call-tool {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+    border-radius: 14px;
+  }
+}
