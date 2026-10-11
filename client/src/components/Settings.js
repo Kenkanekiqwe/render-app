@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Settings.css';
 import { useLanguage } from '../context/LanguageContext';
 import { ACCENT_PRESETS, ACCENT_RGB_PRESET, ACCENT_WHITE_PRESET, SLEEP_TIMER_MINUTES, THEME_PRESETS } from '../utils/storage';
@@ -8,6 +8,9 @@ import {
   getUiSoundStyles,
   playUiSound,
   setUiSoundConfig,
+  setCustomIncomingRingtone,
+  clearCustomIncomingRingtone,
+  previewIncomingCallRing,
 } from '../utils/uiSounds';
 import { FONT_PRESETS } from '../utils/fonts';
 import { isDesktopApp } from '../utils/tauri';
@@ -163,6 +166,11 @@ function Settings({
   const [backgroundInput, setBackgroundInput] = useState(appSettings.customBackgroundUrl || '');
   const [sleepChoice, setSleepChoice] = useState(0);
   const [sleepNow, setSleepNow] = useState(() => Date.now());
+  const ringtoneInputRef = useRef(null);
+  const [customRingtoneName, setCustomRingtoneName] = useState(() => {
+    try { return localStorage.getItem('render_custom_incoming_ringtone_name') || ''; } catch { return ''; }
+  });
+  const [ringtoneError, setRingtoneError] = useState('');
 
   useEffect(() => {
     setBackgroundInput(appSettings.customBackgroundUrl || '');
@@ -1088,6 +1096,57 @@ function Settings({
                       </button>
                     ))}
                   </div>
+                </div>
+                <div className="settings-ringtone-card">
+                  <div className="settings-ringtone-copy">
+                    <strong>Мелодия входящего звонка</strong>
+                    <span>{customRingtoneName ? `Выбрано: ${customRingtoneName}` : 'Сейчас играет встроенная мелодия. Можно выбрать свой аудиофайл.'}</span>
+                  </div>
+                  <input
+                    ref={ringtoneInputRef}
+                    className="settings-ringtone-file"
+                    type="file"
+                    accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac"
+                    disabled={!appSettings.uiSoundsEnabled}
+                    onChange={async (event) => {
+                      const file = event.target.files?.[0];
+                      event.target.value = '';
+                      if (!file) return;
+                      try {
+                        const name = await setCustomIncomingRingtone(file);
+                        setCustomRingtoneName(name);
+                        setRingtoneError('');
+                        try { localStorage.setItem('render_custom_incoming_ringtone_name', name); } catch {}
+                        previewIncomingCallRing();
+                      } catch {
+                        setRingtoneError('Не удалось сохранить файл. Попробуй другой аудиофайл.');
+                      }
+                    }}
+                  />
+                  <div className="settings-ringtone-actions">
+                    <SettingsButton variant="secondary" icon={FaVolumeUp} disabled={!appSettings.uiSoundsEnabled} onClick={() => ringtoneInputRef.current?.click()}>
+                      Выбрать музыку
+                    </SettingsButton>
+                    <SettingsButton variant="ghost" icon={FaVolumeUp} disabled={!appSettings.uiSoundsEnabled} onClick={previewIncomingCallRing}>
+                      Прослушать
+                    </SettingsButton>
+                    {customRingtoneName && (
+                      <SettingsButton variant="ghost" icon={FaTimes} onClick={async () => {
+                        try {
+                          await clearCustomIncomingRingtone();
+                          setCustomRingtoneName('');
+                          setRingtoneError('');
+                          try { localStorage.removeItem('render_custom_incoming_ringtone_name'); } catch {}
+                        } catch {
+                          setRingtoneError('Не удалось удалить мелодию.');
+                        }
+                      }}>
+                        Сбросить
+                      </SettingsButton>
+                    )}
+                  </div>
+                  {ringtoneError && <p className="settings-ringtone-error" role="alert">{ringtoneError}</p>}
+                  <p className="settings-inline-note">Файл хранится в этом браузере на твоём устройстве и не загружается на сервер. Поддержка форматов зависит от браузера.</p>
                 </div>
                 <SettingsButton
                   variant="secondary"
