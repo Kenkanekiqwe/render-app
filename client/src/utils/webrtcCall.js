@@ -265,12 +265,29 @@ export class CallPeer {
 
     const audioTrack = this.screenStream.getAudioTracks()[0];
     const sender = this.videoSender || this.pc.getSenders().find((s) => s.track?.kind === 'video');
-    if (!sender) {
+    if (!sender || !this.pc || this.pc.signalingState === 'closed') {
       await this.stopScreenShare();
       throw new Error('no_video_sender');
     }
+
+    // Hint that this is a desktop capture, and use the already-negotiated
+    // sender so sharing can begin without renegotiating the active call.
+    try { videoTrack.contentHint = 'detail'; } catch { /* optional browser hint */ }
+    const transceiver = this.pc.getTransceivers().find((item) => item.sender === sender);
+    if (transceiver && transceiver.direction === 'recvonly') {
+      transceiver.direction = 'sendrecv';
+    }
     await sender.replaceTrack(videoTrack);
     this.screenSender = sender;
+    try {
+      const parameters = sender.getParameters();
+      if (parameters.encodings?.length) {
+        parameters.encodings = parameters.encodings.map((encoding) => ({ ...encoding, maxBitrate: 5000000 }));
+        await sender.setParameters(parameters);
+      }
+    } catch {
+      // Bitrate tuning is optional; track replacement is the important step.
+    }
 
     if (this.screenAudioSender) {
       await this.screenAudioSender.replaceTrack(audioTrack || null);
