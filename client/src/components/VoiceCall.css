@@ -156,6 +156,42 @@
   background: #0a0a0f;
 }
 
+.voice-call-stage:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  flex: none;
+  background: #000;
+}
+
+.voice-call-stage:fullscreen .voice-call-tile--pip {
+  right: 24px;
+  bottom: 24px;
+  width: min(300px, 24vw);
+}
+
+.voice-call-fullscreen-btn {
+  position: absolute;
+  z-index: 5;
+  top: 14px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 12px;
+  background: rgba(10,10,16,.76);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.voice-call-fullscreen-btn:hover {
+  background: rgba(90,75,145,.88);
+}
+
 .voice-call-tile {
   position: relative;
   background: #111;
