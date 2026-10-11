@@ -84,7 +84,7 @@ function IncomingCallModal() {
   );
 }
 
-function ActiveCallPanel({ onMinimize }) {
+function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange }) {
   const { t } = useLanguage();
   const {
     remoteUser,
@@ -111,7 +111,74 @@ function ActiveCallPanel({ onMinimize }) {
   } = useCall();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [microphoneDevices, setMicrophoneDevices] = useState([]);
+  const [microphoneLevel, setMicrophoneLevel] = useState(0);
   const stageRef = useRef(null);
+
+  useEffect(() => {
+    if (!settingsOpen || !navigator.mediaDevices?.enumerateDevices) return undefined;
+    let cancelled = false;
+    const refreshDevices = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        if (!cancelled) setMicrophoneDevices(devices.filter((device) => device.kind === 'audioinput'));
+      } catch {
+        if (!cancelled) setMicrophoneDevices([]);
+      }
+    };
+    refreshDevices();
+    navigator.mediaDevices.addEventListener?.('devicechange', refreshDevices);
+    return () => {
+      cancelled = true;
+      navigator.mediaDevices.removeEventListener?.('devicechange', refreshDevices);
+    };
+  }, [settingsOpen]);
+
+  useEffect(() => {
+    const track = localStream?.getAudioTracks?.()[0];
+    if (!settingsOpen || !track || typeof window === 'undefined') {
+      setMicrophoneLevel(0);
+      return undefined;
+    }
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return undefined;
+    let audioContext;
+    let animationFrame = 0;
+    let source;
+    let analyser;
+    let cancelled = false;
+    const sample = () => {
+      if (cancelled || !analyser) return;
+      const values = new Uint8Array(analyser.fftSize);
+      analyser.getByteTimeDomainData(values);
+      let sum = 0;
+      for (let i = 0; i < values.length; i += 1) {
+        const normalized = (values[i] - 128) / 128;
+        sum += normalized * normalized;
+      }
+      const rms = Math.sqrt(sum / values.length);
+      setMicrophoneLevel(Math.min(100, Math.round(rms * 260)));
+      animationFrame = window.requestAnimationFrame(sample);
+    };
+    try {
+      audioContext = new AudioContextClass();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      source = audioContext.createMediaStreamSource(new MediaStream([track]));
+      source.connect(analyser);
+      audioContext.resume().catch(() => {});
+      sample();
+    } catch {
+      setMicrophoneLevel(0);
+    }
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(animationFrame);
+      source?.disconnect();
+      analyser?.disconnect();
+      audioContext?.close().catch(() => {});
+    };
+  }, [settingsOpen, localStream]);
   const [stageFullscreen, setStageFullscreen] = useState(false);
 
   useEffect(() => {
@@ -181,7 +248,7 @@ function ActiveCallPanel({ onMinimize }) {
             <>
               <VideoTile
                 stream={mainVideo}
-                muted={false}
+                muted
                 label={showingRemoteShare ? 'Экран собеседника' : t('callRemoteVideo')}
                 className="voice-call-tile--main"
               />
@@ -254,6 +321,25 @@ function ActiveCallPanel({ onMinimize }) {
             </label>
             <p className="voice-call-settings-hint">{t('callScreenHint')}</p>
             <div className="voice-call-settings-divider" />
+            <h3 className="voice-call-settings-subtitle">Микрофон</h3>
+            <label>
+              Устройство ввода
+              <select
+                value={audioSettings.deviceId || ''}
+                onChange={(e) => applyAudioSettings({ deviceId: e.target.value })}
+              >
+                <option value="">Микрофон по умолчанию</option>
+                {microphoneDevices.map((device, index) => (
+                  <option key={device.deviceId || device.groupId || index} value={device.deviceId}>
+                    {device.label || `Микрофон ${index + 1}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="voice-call-mic-meter" role="meter" aria-label="Уровень сигнала микрофона" aria-valuemin={0} aria-valuemax={100} aria-valuenow={microphoneLevel}>
+              <span style={{ width: `${microphoneLevel}%` }} />
+            </div>
+            <p className="voice-call-settings-hint">Говори в микрофон: индикатор должен реагировать на голос.</p>
             <h3 className="voice-call-settings-subtitle">Обработка микрофона</h3>
             <label className="voice-call-settings-check">
               <input
@@ -279,7 +365,23 @@ function ActiveCallPanel({ onMinimize }) {
               />
               <span>Автоматическая громкость микрофона</span>
             </label>
-            <p className="voice-call-settings-hint">Если браузер не позволяет изменить обработку во время звонка, выбранные параметры применятся при следующем звонке.</p>
+            <p className="voice-call-settings-hint">Если устройство не поддерживает изменение обработки на лету, настройки сохранятся и применятся при следующем звонке.</p>
+            <div className="voice-call-settings-divider" />
+            <h3 className="voice-call-settings-subtitle">Громкость входящего звука</h3>
+            <label className="voice-call-volume-row">
+              <span>Собеседник и звук демонстрации</span>
+              <strong>{Math.round(remoteVolume * 100)}%</strong>
+            </label>
+            <input
+              className="voice-call-volume-slider"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={Math.round(remoteVolume * 100)}
+              onChange={(e) => onRemoteVolumeChange(Number(e.target.value) / 100)}
+              aria-label="Громкость собеседника и демонстрации экрана"
+            />
           </div>
         )}
 
@@ -335,21 +437,32 @@ function ActiveCallPanel({ onMinimize }) {
   );
 }
 
-function RemoteAudio({ stream, muted }) {
+function RemoteAudio({ stream, muted, volume }) {
   const ref = useRef(null);
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
+    node.volume = Math.max(0, Math.min(1, volume));
     node.srcObject = muted ? null : stream;
     if (!muted && stream) node.play().catch(() => {});
-  }, [stream, muted]);
+  }, [stream, muted, volume]);
   return <audio ref={ref} autoPlay playsInline />;
 }
 
 export default function VoiceCall() {
   const { phase, errorKey, setErrorKey, remoteStream, deafened, hangUp, remoteUser, connectionState } = useCall();
   const [minimized, setMinimized] = useState(false);
+  const [remoteVolume, setRemoteVolume] = useState(() => {
+    try {
+      const stored = Number(localStorage.getItem('render_call_remote_volume'));
+      return Number.isFinite(stored) ? Math.max(0, Math.min(1, stored)) : 1;
+    } catch { return 1; }
+  });
   const { t } = useLanguage();
+
+  useEffect(() => {
+    try { localStorage.setItem('render_call_remote_volume', String(remoteVolume)); } catch {}
+  }, [remoteVolume]);
 
   useEffect(() => {
     if (!errorKey) return undefined;
@@ -385,9 +498,13 @@ export default function VoiceCall() {
             <button type="button" className="voice-call-window-btn" onClick={() => setMinimized(false)} title="Открыть окно звонка" aria-label="Открыть окно звонка"><FaExpand /></button>
             <button type="button" className="voice-call-tool voice-call-tool--hangup" onClick={hangUp} title={t('callHangUp')} aria-label={t('callHangUp')}><FaPhoneSlash /></button>
           </div>
-        ) : <ActiveCallPanel onMinimize={() => setMinimized(true)} />
+        ) : <ActiveCallPanel
+          onMinimize={() => setMinimized(true)}
+          remoteVolume={remoteVolume}
+          onRemoteVolumeChange={setRemoteVolume}
+        />
       )}
-      {phase !== 'incoming' && <RemoteAudio stream={remoteStream} muted={deafened} />}
+      {phase !== 'incoming' && <RemoteAudio stream={remoteStream} muted={deafened} volume={remoteVolume} />}
     </>
   );
 }
