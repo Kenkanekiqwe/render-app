@@ -46,6 +46,7 @@ export function CallProvider({ enabled, children }) {
   const [deafened, setDeafened] = useState(false);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
+  const [remoteScreenSharing, setRemoteScreenSharing] = useState(false);
   const [connectionState, setConnectionState] = useState('new');
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
@@ -88,6 +89,7 @@ export function CallProvider({ enabled, children }) {
     setDeafened(false);
     setVideoEnabled(true);
     setScreenSharing(false);
+    setRemoteScreenSharing(false);
     setConnectionState('new');
     setLocalStream(null);
     setRemoteStream(null);
@@ -117,6 +119,12 @@ export function CallProvider({ enabled, children }) {
       peer.onScreenShareEnded = () => {
         setScreenStream(null);
         setScreenSharing(false);
+        signaling.signal({
+          callId,
+          toUserId: remoteUserId,
+          signalType: 'screen-share-state',
+          data: { sharing: false },
+        });
         playUiSound('callEnd', 0.5);
       };
       peer.onConnectionState = (state) => {
@@ -343,6 +351,8 @@ export function CallProvider({ enabled, children }) {
               actions.setErrorKey('callConnectError');
               actions.hangUp();
             }
+          } else if (msg.signalType === 'screen-share-state') {
+            setRemoteScreenSharing(Boolean(msg.data?.sharing));
           } else if (msg.signalType === 'ice') {
             peerRef.current?.addIceCandidate(msg.data);
           }
@@ -386,6 +396,12 @@ export function CallProvider({ enabled, children }) {
       await peer.stopScreenShare(true);
       setScreenStream(null);
       setScreenSharing(false);
+      signaling.signal({
+        callId: callIdRef.current,
+        toUserId: remoteUserIdRef.current,
+        signalType: 'screen-share-state',
+        data: { sharing: false },
+      });
       playUiSound('callEnd', 0.5);
       return;
     }
@@ -393,6 +409,12 @@ export function CallProvider({ enabled, children }) {
       const stream = await peer.startScreenShare(screenSettings);
       setScreenStream(stream);
       setScreenSharing(true);
+      signaling.signal({
+        callId: callIdRef.current,
+        toUserId: remoteUserIdRef.current,
+        signalType: 'screen-share-state',
+        data: { sharing: true },
+      });
       playUiSound('callShare', 0.65);
     } catch {
       setErrorKey('callScreenError');
@@ -423,6 +445,7 @@ export function CallProvider({ enabled, children }) {
       deafened,
       videoEnabled,
       screenSharing,
+      remoteScreenSharing,
       connectionState,
       localStream,
       remoteStream,
@@ -449,6 +472,7 @@ export function CallProvider({ enabled, children }) {
       deafened,
       videoEnabled,
       screenSharing,
+      remoteScreenSharing,
       connectionState,
       localStream,
       remoteStream,
