@@ -179,12 +179,18 @@ export class CallPeer {
     // audio and video can arrive with different/empty event.streams arrays;
     // replacing the stream on every ontrack event drops the other media kind.
     this.remoteMediaStream = new MediaStream();
+    this.remoteScreenAudioStream = new MediaStream();
     this.pc.ontrack = (event) => {
-      const stream = this.remoteMediaStream;
+      const screenAudioMid = this.pc?.getTransceivers?.()
+        .find((item) => item.sender === this.screenAudioSender)?.mid;
+      const isScreenAudio = event.track?.kind === 'audio'
+        && screenAudioMid != null
+        && event.transceiver?.mid === screenAudioMid;
+      const stream = isScreenAudio ? this.remoteScreenAudioStream : this.remoteMediaStream;
       if (event.track && !stream.getTracks().some((track) => track.id === event.track.id)) {
         stream.addTrack(event.track);
       }
-      const notifyTrackState = () => this.onRemoteStream?.(stream, event.track);
+      const notifyTrackState = () => this.onRemoteStream?.(stream, event.track, isScreenAudio);
       event.track?.addEventListener('unmute', notifyTrackState);
       event.track?.addEventListener('mute', notifyTrackState);
       event.track?.addEventListener('ended', () => {
@@ -195,7 +201,7 @@ export class CallPeer {
         }
         notifyTrackState();
       }, { once: true });
-      if (this.onRemoteStream) this.onRemoteStream(stream, event.track);
+      if (this.onRemoteStream) this.onRemoteStream(stream, event.track, isScreenAudio);
     };
 
     this.pc.onicecandidate = (event) => {
