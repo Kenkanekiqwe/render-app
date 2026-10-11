@@ -13,6 +13,7 @@ import {
   FaPhone,
   FaMinus,
   FaExpand,
+  FaCompress,
 } from 'react-icons/fa';
 import { useLanguage } from '../context/LanguageContext';
 import { useCall } from '../context/CallContext';
@@ -110,6 +111,28 @@ function ActiveCallPanel({ onMinimize }) {
   } = useCall();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const stageRef = useRef(null);
+  const [stageFullscreen, setStageFullscreen] = useState(false);
+
+  useEffect(() => {
+    const syncFullscreen = () => setStageFullscreen(document.fullscreenElement === stageRef.current);
+    document.addEventListener('fullscreenchange', syncFullscreen);
+    return () => document.removeEventListener('fullscreenchange', syncFullscreen);
+  }, []);
+
+  const toggleStageFullscreen = async () => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    try {
+      if (document.fullscreenElement === stage) {
+        await document.exitFullscreen();
+      } else if (!document.fullscreenElement && stage.requestFullscreen) {
+        await stage.requestFullscreen();
+      }
+    } catch {
+      // Fullscreen can be denied by browser policy; regular calling still works.
+    }
+  };
 
   // Keep the video tile mounted while a remote track is temporarily muted during startup.
   const remoteVideo = remoteStream?.getVideoTracks?.().some(
@@ -153,7 +176,7 @@ function ActiveCallPanel({ onMinimize }) {
           </div>
         </header>
 
-        <div className={`voice-call-stage${showingRemoteShare ? ' is-screen-share' : ''}`}>
+        <div ref={stageRef} className={`voice-call-stage${showingRemoteShare ? ' is-screen-share' : ''}`}>
           {mainVideo || pipVideo ? (
             <>
               <VideoTile
@@ -162,6 +185,17 @@ function ActiveCallPanel({ onMinimize }) {
                 label={showingRemoteShare ? 'Экран собеседника' : t('callRemoteVideo')}
                 className="voice-call-tile--main"
               />
+              {showingRemoteShare && (
+                <button
+                  type="button"
+                  className="voice-call-fullscreen-btn"
+                  onClick={toggleStageFullscreen}
+                  title={stageFullscreen ? 'Вернуть обычный размер' : 'На весь экран'}
+                  aria-label={stageFullscreen ? 'Вернуть обычный размер' : 'На весь экран'}
+                >
+                  {stageFullscreen ? <FaCompress /> : <FaExpand />}
+                </button>
+              )}
               <VideoTile
                 stream={pipVideo}
                 muted
