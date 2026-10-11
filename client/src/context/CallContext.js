@@ -366,6 +366,10 @@ export function CallProvider({ enabled, children }) {
             }
           } else if (msg.signalType === 'screen-share-state') {
             setRemoteScreenSharing(Boolean(msg.data?.sharing));
+            // Force the call stage to rebind the remote video element as soon as
+            // the peer starts/stops sharing, even though replaceTrack keeps the
+            // same negotiated WebRTC track and does not fire another ontrack.
+            setRemoteStream((current) => current ? new MediaStream(current.getTracks()) : current);
           } else if (msg.signalType === 'ice') {
             peerRef.current?.addIceCandidate(msg.data);
           }
