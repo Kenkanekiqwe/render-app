@@ -105,7 +105,8 @@ async function readCustomRingtone() {
 }
 
 export async function setCustomIncomingRingtone(file) {
-  if (!file || !file.type?.startsWith('audio/')) throw new Error('Choose an audio file');
+  const audioExtension = /\.(mp3|wav|ogg|oga|m4a|aac|flac|opus|webm)$/i.test(file?.name || '');
+  if (!file || (!file.type?.startsWith('audio/') && !audioExtension)) throw new Error('Choose an audio file');
   const db = await openRingtoneDb();
   try {
     await new Promise((resolve, reject) => {
