@@ -1249,6 +1249,13 @@ function AppContent() {
         if (!currentTrackRef.current) return;
         playAdjacentTrack(-1);
         break;
+      case 'favoriteTrack': {
+        const track = currentTrackRef.current;
+        if (!track) return;
+        playUiSound('like');
+        setLikedTracks((prev) => toggleLikedTrack(prev, track));
+        break;
+      }
       default:
         break;
     }
@@ -1269,6 +1276,7 @@ function AppContent() {
         ['playPause', keybinds.playPause],
         ['nextTrack', keybinds.nextTrack],
         ['prevTrack', keybinds.prevTrack],
+        ['favoriteTrack', keybinds.favoriteTrack],
       ];
 
       for (const [action, bind] of bindings) {
@@ -1279,7 +1287,7 @@ function AppContent() {
           return;
         }
 
-        if (action === 'playPause' || action === 'nextTrack' || action === 'prevTrack') {
+        if (action === 'playPause' || action === 'nextTrack' || action === 'prevTrack' || action === 'favoriteTrack') {
           if (!currentTrackRef.current) return;
         }
 
