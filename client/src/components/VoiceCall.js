@@ -315,11 +315,12 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange }) {
               <input
                 type="checkbox"
                 checked={screenSettings.withAudio}
+                disabled={screenSharing}
                 onChange={(e) => applyScreenSettings({ withAudio: e.target.checked })}
               />
               {t('callScreenSystemAudio')}
             </label>
-            <p className="voice-call-settings-hint">{t('callScreenHint')}</p>
+            <p className="voice-call-settings-hint">{screenSharing ? 'Чтобы изменить захват системного звука, останови демонстрацию и запусти её снова.' : t('callScreenHint')}</p>
             <div className="voice-call-settings-divider" />
             <h3 className="voice-call-settings-subtitle">Микрофон</h3>
             <label>
@@ -454,7 +455,9 @@ export default function VoiceCall() {
   const [minimized, setMinimized] = useState(false);
   const [remoteVolume, setRemoteVolume] = useState(() => {
     try {
-      const stored = Number(localStorage.getItem('render_call_remote_volume'));
+      const raw = localStorage.getItem('render_call_remote_volume');
+      if (raw === null) return 1;
+      const stored = Number(raw);
       return Number.isFinite(stored) ? Math.max(0, Math.min(1, stored)) : 1;
     } catch { return 1; }
   });
