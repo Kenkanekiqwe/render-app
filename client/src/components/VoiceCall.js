@@ -93,6 +93,7 @@ function ActiveCallPanel({ onMinimize }) {
     deafened,
     videoEnabled,
     screenSharing,
+    remoteScreenSharing,
     localStream,
     remoteStream,
     screenStream,
@@ -147,7 +148,7 @@ function ActiveCallPanel({ onMinimize }) {
           </div>
         </header>
 
-        <div className={`voice-call-stage${screenSharing ? ' is-screen-share' : ''}`}>
+        <div className={`voice-call-stage${screenSharing || remoteScreenSharing ? ' is-screen-share' : ''}`}>
           {mainVideo || pipVideo ? (
             <>
               <VideoTile
@@ -162,7 +163,7 @@ function ActiveCallPanel({ onMinimize }) {
                 label={screenSharing ? t('callRemoteVideo') : t('callYou')}
                 className="voice-call-tile--pip"
               />
-              {screenSharing && <div className="voice-call-share-badge"><FaDesktop /> Демонстрация экрана</div>}
+              {(screenSharing || remoteScreenSharing) && <div className="voice-call-share-badge"><FaDesktop /> {screenSharing ? 'Вы показываете экран' : 'Собеседник показывает экран'}</div>}
             </>
           ) : (
             <div className="voice-call-audio-only">
