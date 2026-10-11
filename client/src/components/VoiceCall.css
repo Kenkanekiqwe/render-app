@@ -786,3 +786,37 @@
     border-radius: 14px;
   }
 }
+
+
+/* Explicit remote-video state: keep the stage visible while a WebRTC track starts flowing. */
+.voice-call-tile.is-waiting-for-video video { opacity: .18; }
+.voice-call-tile.has-video-frame video { opacity: 1; }
+.voice-call-video-waiting {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px;
+  color: rgba(255,255,255,.82);
+  background: radial-gradient(ellipse at center, rgba(24,25,34,.72), rgba(4,5,8,.88));
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.voice-call-video-waiting-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a99aff;
+  box-shadow: 0 0 0 5px rgba(169,154,255,.14), 0 0 18px rgba(169,154,255,.8);
+  animation: voice-call-waiting-pulse 1.25s ease-in-out infinite;
+}
+.voice-call-tile-label { z-index: 2; }
+.voice-call-minimized .voice-call-window-btn { flex: 0 0 40px; }
+@keyframes voice-call-waiting-pulse {
+  0%, 100% { opacity: .65; transform: scale(.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
