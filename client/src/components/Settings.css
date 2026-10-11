@@ -740,3 +740,36 @@
 .settings-ringtone-file { display: none; }
 .settings-ringtone-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .settings-ringtone-error { margin: 0; color: #ff8585; font-size: 12px; }
+
+
+/* Keep settings scrollable even when the surrounding app pane has a fixed height. */
+.settings-page {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+.settings-layout {
+  min-height: 100%;
+  height: auto;
+  align-items: start;
+}
+.settings-main {
+  min-height: 0;
+  height: auto;
+  max-height: calc(100vh - var(--bottom-chrome-height, 88px) - 24px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+@media (max-width: 900px) {
+  .settings-layout {
+    height: auto;
+    min-height: 100%;
+  }
+  .settings-main {
+    max-height: none;
+  }
+}
