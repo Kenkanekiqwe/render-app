@@ -49,12 +49,12 @@ const SOUND_PROFILES = {
     { f: 587.33, d: 0.14, delay: 0.08 },
   ],
   callRing: [
-    { f: 523.25, d: 0.24, type: 'sine' },
-    { f: 659.25, d: 0.24, delay: 0.07, type: 'triangle' },
-    { f: 783.99, d: 0.30, delay: 0.15, type: 'sine' },
-    { f: 1046.5, d: 0.34, delay: 0.23, type: 'sine' },
-    { f: 659.25, d: 0.22, delay: 0.74, type: 'sine' },
-    { f: 783.99, d: 0.25, delay: 0.82, type: 'triangle' },
+    { f: 659.25, d: 0.28, type: 'triangle' },
+    { f: 830.61, d: 0.30, delay: 0.10, type: 'sine' },
+    { f: 987.77, d: 0.34, delay: 0.22, type: 'triangle' },
+    { f: 1318.51, d: 0.40, delay: 0.34, type: 'sine' },
+    { f: 987.77, d: 0.28, delay: 0.92, type: 'triangle' },
+    { f: 1174.66, d: 0.34, delay: 1.04, type: 'sine' },
   ],
   callShare: [
     { f: 587.33, d: 0.075, type: 'sine' },
@@ -73,6 +73,62 @@ let masterVolume = 0.35;
 let soundStyle = 'soft';
 let soundPack = 'builtin';
 let incomingRingTimer = null;
+let incomingRingGeneration = 0;
+let customRingAudio = null;
+let customRingObjectUrl = null;
+let ringPreviewTimer = null;
+
+const RING_DB_NAME = 'render-app-call-ringtones';
+const RING_STORE_NAME = 'ringtones';
+
+function openRingtoneDb() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) { reject(new Error('IndexedDB unavailable')); return; }
+    const request = indexedDB.open(RING_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(RING_STORE_NAME)) request.result.createObjectStore(RING_STORE_NAME);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('Could not open ringtone storage'));
+  });
+}
+
+async function readCustomRingtone() {
+  const db = await openRingtoneDb();
+  try {
+    return await new Promise((resolve, reject) => {
+      const request = db.transaction(RING_STORE_NAME, 'readonly').objectStore(RING_STORE_NAME).get('incoming');
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error || new Error('Could not read ringtone'));
+    });
+  } finally { db.close(); }
+}
+
+export async function setCustomIncomingRingtone(file) {
+  if (!file || !file.type?.startsWith('audio/')) throw new Error('Choose an audio file');
+  const db = await openRingtoneDb();
+  try {
+    await new Promise((resolve, reject) => {
+      const request = db.transaction(RING_STORE_NAME, 'readwrite').objectStore(RING_STORE_NAME).put({ blob: file, name: file.name, type: file.type }, 'incoming');
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error || new Error('Could not save ringtone'));
+    });
+  } finally { db.close(); }
+  return file.name;
+}
+
+export async function clearCustomIncomingRingtone() {
+  const db = await openRingtoneDb();
+  try {
+    await new Promise((resolve, reject) => {
+      const request = db.transaction(RING_STORE_NAME, 'readwrite').objectStore(RING_STORE_NAME).delete('incoming');
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error || new Error('Could not remove ringtone'));
+    });
+  } finally { db.close(); }
+  stopIncomingCallRing();
+}
+
 
 const fileCache = {};
 let audioContext;
@@ -143,7 +199,7 @@ function playTone({ frequency, duration = 0.08, volume = 0.12, type = 'sine', de
 
 function playProcedural(name, volume = 1) {
   const profile = SOUND_PROFILES[name] || SOUND_PROFILES.click;
-  const v = volume * masterVolume * 0.14;
+  const v = volume * masterVolume * (name === 'callRing' ? 0.34 : 0.14);
 
   profile.forEach((tone) => {
     playTone({
@@ -223,19 +279,67 @@ async function tryPlayFile(name, volume) {
 
 function playIncomingRingPulse() {
   if (!soundsEnabled) return;
-  playProcedural('callRing', 1.15);
+  playProcedural('callRing', 1.6);
+}
+
+async function startCustomRingIfAvailable(generation) {
+  try {
+    const saved = await readCustomRingtone();
+    if (!saved?.blob || generation !== incomingRingGeneration || !soundsEnabled) return false;
+    if (customRingAudio) { customRingAudio.pause(); customRingAudio = null; }
+    if (customRingObjectUrl) URL.revokeObjectURL(customRingObjectUrl);
+    customRingObjectUrl = URL.createObjectURL(saved.blob);
+    customRingAudio = new Audio(customRingObjectUrl);
+    customRingAudio.loop = true;
+    customRingAudio.preload = 'auto';
+    customRingAudio.volume = Math.min(1, Math.max(0.05, masterVolume * 1.45));
+    await customRingAudio.play();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function startIncomingCallRing() {
   stopIncomingCallRing();
-  playIncomingRingPulse();
-  incomingRingTimer = window.setInterval(playIncomingRingPulse, 2400);
+  if (!soundsEnabled) return;
+  const generation = incomingRingGeneration;
+  startCustomRingIfAvailable(generation).then((played) => {
+    if (generation !== incomingRingGeneration || played || !soundsEnabled) return;
+    playIncomingRingPulse();
+    incomingRingTimer = window.setInterval(playIncomingRingPulse, 2400);
+  });
+}
+
+export function previewIncomingCallRing() {
+  stopIncomingCallRing();
+  if (!soundsEnabled) return;
+  const generation = incomingRingGeneration;
+  startCustomRingIfAvailable(generation).then((played) => {
+    if (generation !== incomingRingGeneration || played) return;
+    playIncomingRingPulse();
+    ringPreviewTimer = window.setTimeout(() => stopIncomingCallRing(), 3600);
+  });
 }
 
 export function stopIncomingCallRing() {
+  incomingRingGeneration += 1;
   if (incomingRingTimer) {
     clearInterval(incomingRingTimer);
     incomingRingTimer = null;
+  }
+  if (ringPreviewTimer) {
+    clearTimeout(ringPreviewTimer);
+    ringPreviewTimer = null;
+  }
+  if (customRingAudio) {
+    customRingAudio.pause();
+    customRingAudio.currentTime = 0;
+    customRingAudio = null;
+  }
+  if (customRingObjectUrl) {
+    URL.revokeObjectURL(customRingObjectUrl);
+    customRingObjectUrl = null;
   }
 }
 
