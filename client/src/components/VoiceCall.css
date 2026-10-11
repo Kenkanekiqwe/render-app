@@ -887,3 +887,23 @@
   outline: 2px solid #b6aaff;
   outline-offset: 3px;
 }
+
+
+.voice-call-settings-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  margin: 4px 0;
+  background: rgba(255,255,255,.1);
+}
+.voice-call-settings .voice-call-settings-subtitle {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: rgba(255,255,255,.92);
+  font-size: 13px;
+}
+.voice-call-settings .voice-call-settings-hint {
+  grid-column: 1 / -1;
+  line-height: 1.5;
+}
+.voice-call-settings-check span { color: rgba(255,255,255,.86); }
+.voice-call-settings-check input[type="checkbox"]:disabled { opacity: .45; cursor: not-allowed; }
