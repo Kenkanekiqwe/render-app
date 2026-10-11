@@ -456,18 +456,19 @@ export function CallProvider({ enabled, children }) {
   }, [audioSettings]);
 
   const applyScreenSettings = useCallback((next) => {
-    // Display-capture constraints are selected when sharing starts. Updating
-    // preferences must not restart capture or reopen the browser source picker.
-    setScreenSettings((prev) => {
-      const updated = { ...prev, ...next };
-      try {
-        localStorage.setItem('render_call_screen_settings', JSON.stringify(updated));
-      } catch {
-        // Keep current-session settings usable if browser storage is unavailable.
-      }
-      return updated;
-    });
-  }, []);
+    const updated = { ...screenSettings, ...next };
+    setScreenSettings(updated);
+    try {
+      localStorage.setItem('render_call_screen_settings', JSON.stringify(updated));
+    } catch {
+      // Keep current-session settings usable if browser storage is unavailable.
+    }
+    if (screenSharing) {
+      peerRef.current?.applyScreenSettings(updated).catch(() => {
+        setErrorKey('callScreenError');
+      });
+    }
+  }, [screenSettings, screenSharing]);
 
   const value = useMemo(
     () => ({
