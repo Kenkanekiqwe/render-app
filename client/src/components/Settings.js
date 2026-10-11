@@ -193,6 +193,7 @@ function Settings({
 
   const tabs = [
     { id: 'general', label: t('settingsGeneral'), icon: FaCog, desc: t('settingsGeneralDesc') },
+    { id: 'sounds', label: 'Звук и звонки', icon: FaVolumeUp, desc: 'Мелодия входящего звонка и системные звуки' },
     { id: 'controls', label: t('settingsControls'), icon: FaKeyboard, desc: t('settingsControlsDesc') },
     { id: 'appearance', label: t('settingsAppearance'), icon: FaPalette, desc: t('settingsAppearanceDesc') },
     { id: 'workshop', label: t('workshopTitle'), icon: FaWrench, desc: t('workshopDesc') },
@@ -1019,6 +1020,12 @@ function Settings({
                 </div>
               </SettingsSection>
 
+              
+            </div>
+          )}
+
+          {activeCategory === 'sounds' && (
+            <div className="settings-stack">
               <SettingsSection title={t('settingsUiSounds')} description={t('settingsUiSoundsDesc')}>
                 <div className="settings-list">
                   <SettingsToggleRow
