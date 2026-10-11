@@ -722,3 +722,21 @@
     width: 100%;
   }
 }
+
+
+/* Custom ringtone picker */
+.settings-ringtone-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ui-surface) 82%, var(--accent-fill, #8c78ff) 18%);
+}
+.settings-ringtone-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.settings-ringtone-copy strong { color: var(--ui-text-strong); font-size: 13px; font-weight: 650; }
+.settings-ringtone-copy span { color: var(--ui-text-muted); font-size: 12px; overflow-wrap: anywhere; }
+.settings-ringtone-file { display: none; }
+.settings-ringtone-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.settings-ringtone-error { margin: 0; color: #ff8585; font-size: 12px; }
