@@ -5,6 +5,7 @@ export const KEYBIND_ACTIONS = [
   'playPause',
   'nextTrack',
   'prevTrack',
+  'favoriteTrack',
 ];
 
 export const DEFAULT_KEYBINDS = {
@@ -17,6 +18,7 @@ export const DEFAULT_KEYBINDS = {
   playPause: { code: 'Space', ctrl: true, alt: true, shift: false, meta: false },
   nextTrack: { code: 'ArrowRight', ctrl: true, alt: true, shift: false, meta: false },
   prevTrack: { code: 'ArrowLeft', ctrl: true, alt: true, shift: false, meta: false },
+  favoriteTrack: { code: 'KeyL', ctrl: true, alt: true, shift: false, meta: false },
 };
 
 const MODIFIER_CODES = new Set([
@@ -74,6 +76,7 @@ export function normalizeKeybinds(raw) {
     playPause: normalizeBind(source.playPause, DEFAULT_KEYBINDS.playPause),
     nextTrack: normalizeBind(source.nextTrack, DEFAULT_KEYBINDS.nextTrack),
     prevTrack: normalizeBind(source.prevTrack, DEFAULT_KEYBINDS.prevTrack),
+    favoriteTrack: normalizeBind(source.favoriteTrack, DEFAULT_KEYBINDS.favoriteTrack),
   };
 }
 
