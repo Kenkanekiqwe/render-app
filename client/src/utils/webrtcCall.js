@@ -10,11 +10,11 @@ export const SCREEN_PRESETS = {
   native: { width: { ideal: 3840 }, height: { ideal: 2160 } },
 };
 
-export function buildAudioConstraints() {
+export function buildAudioConstraints({ echoCancellation = true, noiseSuppression = true, autoGainControl = true } = {}) {
   return {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
+    echoCancellation,
+    noiseSuppression,
+    autoGainControl,
     sampleRate: { ideal: 48000 },
     channelCount: { ideal: 1 },
   };
@@ -84,26 +84,26 @@ export class CallPeer {
     this.hasRemoteDescription = false;
   }
 
-  async initAsCaller(withVideo) {
+  async initAsCaller(withVideo, audioSettings) {
     this.isCaller = true;
     this.withVideo = withVideo;
-    await this.ensureLocalMedia(withVideo);
+    await this.ensureLocalMedia(withVideo, audioSettings);
     this.createPeerConnection();
   }
 
-  async initAsCallee(withVideo) {
+  async initAsCallee(withVideo, audioSettings) {
     this.isCaller = false;
     this.withVideo = withVideo;
-    await this.ensureLocalMedia(withVideo);
+    await this.ensureLocalMedia(withVideo, audioSettings);
     this.createPeerConnection();
   }
 
-  async ensureLocalMedia(withVideo) {
+  async ensureLocalMedia(withVideo, audioSettings) {
     if (this.localStream) {
       this.localStream.getTracks().forEach((t) => t.stop());
     }
     this.localStream = await navigator.mediaDevices.getUserMedia({
-      audio: buildAudioConstraints(),
+      audio: buildAudioConstraints(audioSettings),
       video: buildVideoConstraints(withVideo),
     });
     return this.localStream;
@@ -200,6 +200,19 @@ export class CallPeer {
 
   getScreenStream() {
     return this.screenStream;
+  }
+
+  async applyAudioSettings(settings = {}) {
+    const track = this.localStream?.getAudioTracks?.()[0];
+    if (!track) return;
+    const constraints = buildAudioConstraints(settings);
+    try {
+      await track.applyConstraints(constraints);
+    } catch (error) {
+      // Some browsers cannot toggle DSP constraints on a live track. Keep the
+      // current stream alive; the selected values are applied on the next call.
+      throw error;
+    }
   }
 
   setMuted(muted) {
