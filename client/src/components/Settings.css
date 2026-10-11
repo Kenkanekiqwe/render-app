@@ -773,3 +773,61 @@
     max-height: none;
   }
 }
+
+
+/* Fix: the category/icon sidebar must have its own definite scroll area.
+   The app shell clips overflow, so percentage max-height alone is unreliable. */
+.settings-page {
+  min-height: 0;
+}
+.settings-layout {
+  min-height: 0;
+  height: 100%;
+  align-items: start;
+}
+.settings-nav {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  min-height: 0;
+  height: auto;
+  max-height: calc(100vh - var(--bottom-chrome-height, 88px) - 48px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+.settings-nav-list {
+  min-height: 0;
+}
+@media (max-width: 900px) {
+  .settings-page {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+  .settings-layout {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+  .settings-nav {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    background: var(--ui-background, transparent);
+  }
+  .settings-nav-list {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
+    scrollbar-width: thin;
+  }
+}
