@@ -63,6 +63,7 @@ export function CallProvider({ enabled, children }) {
   const [connectionState, setConnectionState] = useState('new');
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [remoteScreenAudioStream, setRemoteScreenAudioStream] = useState(null);
   const [screenStream, setScreenStream] = useState(null);
   const [screenSettings, setScreenSettings] = useState(() => {
     const defaults = { quality: '1080p', fps: 30, withAudio: true };
@@ -106,6 +107,7 @@ export function CallProvider({ enabled, children }) {
     setConnectionState('new');
     setLocalStream(null);
     setRemoteStream(null);
+    setRemoteScreenAudioStream(null);
     setScreenStream(null);
     setErrorKey('');
   }, [setPhaseSafe]);
@@ -124,7 +126,13 @@ export function CallProvider({ enabled, children }) {
 
   const attachPeerHandlers = useCallback(
     (peer, callId, remoteUserId) => {
-      peer.onRemoteStream = (stream) => {
+      peer.onRemoteStream = (stream, track, isScreenAudio = false) => {
+        // Keep screen-capture audio separate so its volume can be adjusted
+        // independently from the other participant's microphone.
+        if (isScreenAudio) {
+          setRemoteScreenAudioStream(new MediaStream(stream.getTracks()));
+          return;
+        }
         // A new MediaStream identity forces the call UI to re-evaluate newly
         // arrived video tracks even when the underlying stream object is stable.
         setRemoteStream(new MediaStream(stream.getTracks()));
@@ -498,6 +506,7 @@ export function CallProvider({ enabled, children }) {
       connectionState,
       localStream,
       remoteStream,
+      remoteScreenAudioStream,
       screenStream,
       screenSettings,
       audioSettings,
@@ -527,6 +536,7 @@ export function CallProvider({ enabled, children }) {
       connectionState,
       localStream,
       remoteStream,
+      remoteScreenAudioStream,
       screenStream,
       screenSettings,
       audioSettings,
