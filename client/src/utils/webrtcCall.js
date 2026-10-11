@@ -10,13 +10,14 @@ export const SCREEN_PRESETS = {
   native: { width: { ideal: 3840 }, height: { ideal: 2160 } },
 };
 
-export function buildAudioConstraints({ echoCancellation = true, noiseSuppression = true, autoGainControl = true } = {}) {
+export function buildAudioConstraints({ echoCancellation = true, noiseSuppression = true, autoGainControl = true, deviceId = '' } = {}) {
   return {
     echoCancellation,
     noiseSuppression,
     autoGainControl,
     sampleRate: { ideal: 48000 },
     channelCount: { ideal: 1 },
+    ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
   };
 }
 
@@ -122,6 +123,7 @@ export class CallPeer {
     this.remoteMediaStream = null;
     this.pendingIceCandidates = [];
     this.hasRemoteDescription = false;
+    this.audioDeviceId = '';
   }
 
   async initAsCaller(withVideo, audioSettings) {
@@ -142,6 +144,7 @@ export class CallPeer {
     if (this.localStream) {
       this.localStream.getTracks().forEach((t) => t.stop());
     }
+    this.audioDeviceId = audioSettings?.deviceId || '';
     this.localStream = await navigator.mediaDevices.getUserMedia({
       audio: buildAudioConstraints(audioSettings),
       video: buildVideoConstraints(withVideo),
@@ -243,14 +246,42 @@ export class CallPeer {
   }
 
   async applyAudioSettings(settings = {}) {
-    const track = this.localStream?.getAudioTracks?.()[0];
+    let track = this.localStream?.getAudioTracks?.()[0];
     if (!track) return;
-    const constraints = buildAudioConstraints(settings);
+
+    const selectedDeviceId = settings.deviceId || '';
+    if (selectedDeviceId !== this.audioDeviceId) {
+      const replacementStream = await navigator.mediaDevices.getUserMedia({
+        audio: buildAudioConstraints(settings),
+        video: false,
+      });
+      const replacementTrack = replacementStream.getAudioTracks()[0];
+      if (!replacementTrack) {
+        replacementStream.getTracks().forEach((item) => item.stop());
+        throw new Error('Selected microphone did not provide an audio track');
+      }
+      const sender = this.pc?.getSenders?.().find((item) => item.track?.kind === 'audio');
+      try {
+        if (sender) await sender.replaceTrack(replacementTrack);
+      } catch (error) {
+        replacementStream.getTracks().forEach((item) => item.stop());
+        throw error;
+      }
+      this.localStream.removeTrack(track);
+      this.localStream.addTrack(replacementTrack);
+      track.stop();
+      track = replacementTrack;
+      this.audioDeviceId = selectedDeviceId;
+    }
+
+    // deviceId is a getUserMedia selection constraint, not a live DSP constraint.
+    const processingConstraints = buildAudioConstraints(settings);
+    delete processingConstraints.deviceId;
     try {
-      await track.applyConstraints(constraints);
+      await track.applyConstraints(processingConstraints);
     } catch (error) {
-      // Some browsers cannot toggle DSP constraints on a live track. Keep the
-      // current stream alive; the selected values are applied on the next call.
+      // Some browsers cannot toggle DSP constraints on a live track. The
+      // selected preferences remain saved and apply to the next call.
       throw error;
     }
   }
