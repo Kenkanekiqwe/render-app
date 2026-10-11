@@ -114,9 +114,12 @@ function ActiveCallPanel({ onMinimize }) {
     (track) => track.readyState === 'live'
   ) ? remoteStream : null;
   const localCamera = withVideo && videoEnabled ? localStream : null;
-  const localVideo = screenSharing ? screenStream : localCamera;
-  const mainVideo = screenSharing ? localVideo : remoteVideo;
-  const pipVideo = screenSharing ? remoteVideo : localVideo;
+  // The main stage is always remote-first: never mirror our own screen capture
+  // back to us as the full-screen tile. The remote peer's share arrives on the
+  // remote video track and is promoted when its share-state signal is active.
+  const mainVideo = remoteVideo;
+  const pipVideo = localCamera;
+  const showingRemoteShare = remoteScreenSharing && Boolean(remoteVideo);
 
   const statusText =
     phase === 'outgoing'
@@ -148,22 +151,22 @@ function ActiveCallPanel({ onMinimize }) {
           </div>
         </header>
 
-        <div className={`voice-call-stage${screenSharing || remoteScreenSharing ? ' is-screen-share' : ''}`}>
+        <div className={`voice-call-stage${showingRemoteShare ? ' is-screen-share' : ''}`}>
           {mainVideo || pipVideo ? (
             <>
               <VideoTile
                 stream={mainVideo}
-                muted={screenSharing}
-                label={screenSharing ? t('callYourScreen') : t('callRemoteVideo')}
+                muted={false}
+                label={showingRemoteShare ? 'Экран собеседника' : t('callRemoteVideo')}
                 className="voice-call-tile--main"
               />
               <VideoTile
                 stream={pipVideo}
-                muted={!screenSharing}
-                label={screenSharing ? t('callRemoteVideo') : t('callYou')}
+                muted
+                label={t('callYou')}
                 className="voice-call-tile--pip"
               />
-              {(screenSharing || remoteScreenSharing) && <div className="voice-call-share-badge"><FaDesktop /> {screenSharing ? 'Вы показываете экран' : 'Собеседник показывает экран'}</div>}
+              {(screenSharing || remoteScreenSharing) && <div className="voice-call-share-badge"><FaDesktop /> {showingRemoteShare ? 'Собеседник показывает экран' : screenSharing ? 'Вы показываете экран · локальный предпросмотр скрыт' : 'Демонстрация экрана'}</div>}
             </>
           ) : (
             <div className="voice-call-audio-only">
