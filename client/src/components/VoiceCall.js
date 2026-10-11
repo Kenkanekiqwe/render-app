@@ -98,6 +98,7 @@ function ActiveCallPanel({ onMinimize }) {
     remoteStream,
     screenStream,
     screenSettings,
+    audioSettings,
     connectionState,
     hangUp,
     toggleMute,
@@ -105,6 +106,7 @@ function ActiveCallPanel({ onMinimize }) {
     toggleVideo,
     toggleScreenShare,
     applyScreenSettings,
+    applyAudioSettings,
   } = useCall();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -217,6 +219,33 @@ function ActiveCallPanel({ onMinimize }) {
               {t('callScreenSystemAudio')}
             </label>
             <p className="voice-call-settings-hint">{t('callScreenHint')}</p>
+            <div className="voice-call-settings-divider" />
+            <h3 className="voice-call-settings-subtitle">Обработка микрофона</h3>
+            <label className="voice-call-settings-check">
+              <input
+                type="checkbox"
+                checked={audioSettings.noiseSuppression}
+                onChange={(e) => applyAudioSettings({ noiseSuppression: e.target.checked })}
+              />
+              <span>Шумоподавление</span>
+            </label>
+            <label className="voice-call-settings-check">
+              <input
+                type="checkbox"
+                checked={audioSettings.echoCancellation}
+                onChange={(e) => applyAudioSettings({ echoCancellation: e.target.checked })}
+              />
+              <span>Подавление эха</span>
+            </label>
+            <label className="voice-call-settings-check">
+              <input
+                type="checkbox"
+                checked={audioSettings.autoGainControl}
+                onChange={(e) => applyAudioSettings({ autoGainControl: e.target.checked })}
+              />
+              <span>Автоматическая громкость микрофона</span>
+            </label>
+            <p className="voice-call-settings-hint">Если браузер не позволяет изменить обработку во время звонка, выбранные параметры применятся при следующем звонке.</p>
           </div>
         )}
 
