@@ -97,7 +97,6 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange, scree
     remoteScreenSharing,
     localStream,
     remoteStream,
-    remoteScreenAudioStream,
     screenStream,
     screenSettings,
     audioSettings,
