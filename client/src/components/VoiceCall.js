@@ -178,7 +178,7 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange }) {
       analyser?.disconnect();
       audioContext?.close().catch(() => {});
     };
-  }, [settingsOpen, localStream]);
+  }, [settingsOpen, localStream, audioSettings.deviceId]);
   const [stageFullscreen, setStageFullscreen] = useState(false);
 
   useEffect(() => {
