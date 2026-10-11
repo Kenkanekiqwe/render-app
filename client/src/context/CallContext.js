@@ -419,7 +419,7 @@ export function CallProvider({ enabled, children }) {
     } catch {
       setErrorKey('callScreenError');
     }
-  }, [screenSettings, screenSharing]);
+  }, [screenSettings, screenSharing, signaling]);
 
   const applyScreenSettings = useCallback((next) => {
     // Display-capture constraints are selected when sharing starts. Updating
