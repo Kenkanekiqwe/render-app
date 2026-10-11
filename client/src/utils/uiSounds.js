@@ -316,7 +316,11 @@ export function previewIncomingCallRing() {
   if (!soundsEnabled) return;
   const generation = incomingRingGeneration;
   startCustomRingIfAvailable(generation).then((played) => {
-    if (generation !== incomingRingGeneration || played) return;
+    if (generation !== incomingRingGeneration) return;
+    if (played) {
+      ringPreviewTimer = window.setTimeout(() => stopIncomingCallRing(), 5000);
+      return;
+    }
     playIncomingRingPulse();
     ringPreviewTimer = window.setTimeout(() => stopIncomingCallRing(), 3600);
   });
