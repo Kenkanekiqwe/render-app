@@ -450,7 +450,8 @@ export function CallProvider({ enabled, children }) {
       await peerRef.current?.applyAudioSettings(updated);
       setErrorKey('');
     } catch {
-      setErrorKey('callAudioSettingsNextCall');
+      // The preference is saved and will be applied to the next call if this
+      // browser cannot reconfigure the active microphone track in place.
     }
   }, [audioSettings]);
 
