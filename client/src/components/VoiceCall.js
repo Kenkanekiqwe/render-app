@@ -84,7 +84,7 @@ function IncomingCallModal() {
   );
 }
 
-function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange }) {
+function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange, screenVolume, onScreenVolumeChange }) {
   const { t } = useLanguage();
   const {
     remoteUser,
@@ -97,6 +97,7 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange }) {
     remoteScreenSharing,
     localStream,
     remoteStream,
+    remoteScreenAudioStream,
     screenStream,
     screenSettings,
     audioSettings,
@@ -368,9 +369,9 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange }) {
             </label>
             <p className="voice-call-settings-hint">Если устройство не поддерживает изменение обработки на лету, настройки сохранятся и применятся при следующем звонке.</p>
             <div className="voice-call-settings-divider" />
-            <h3 className="voice-call-settings-subtitle">Громкость входящего звука</h3>
+            <h3 className="voice-call-settings-subtitle">Громкость собеседника</h3>
             <label className="voice-call-volume-row">
-              <span>Собеседник и звук демонстрации</span>
+              <span>Голос собеседника</span>
               <strong>{Math.round(remoteVolume * 100)}%</strong>
             </label>
             <input
@@ -381,7 +382,22 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange }) {
               step="1"
               value={Math.round(remoteVolume * 100)}
               onChange={(e) => onRemoteVolumeChange(Number(e.target.value) / 100)}
-              aria-label="Громкость собеседника и демонстрации экрана"
+              aria-label="Громкость голоса собеседника"
+            />
+            <h3 className="voice-call-settings-subtitle">Громкость демонстрации</h3>
+            <label className="voice-call-volume-row">
+              <span>Системный звук с демонстрируемого экрана</span>
+              <strong>{Math.round(screenVolume * 100)}%</strong>
+            </label>
+            <input
+              className="voice-call-volume-slider"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={Math.round(screenVolume * 100)}
+              onChange={(e) => onScreenVolumeChange(Number(e.target.value) / 100)}
+              aria-label="Громкость звука демонстрации экрана"
             />
           </div>
         )}
@@ -451,11 +467,19 @@ function RemoteAudio({ stream, muted, volume }) {
 }
 
 export default function VoiceCall() {
-  const { phase, errorKey, setErrorKey, remoteStream, deafened, hangUp, remoteUser, connectionState } = useCall();
+  const { phase, errorKey, setErrorKey, remoteStream, remoteScreenAudioStream, deafened, hangUp, remoteUser, connectionState } = useCall();
   const [minimized, setMinimized] = useState(false);
   const [remoteVolume, setRemoteVolume] = useState(() => {
     try {
       const raw = localStorage.getItem('render_call_remote_volume');
+      if (raw === null) return 1;
+      const stored = Number(raw);
+      return Number.isFinite(stored) ? Math.max(0, Math.min(1, stored)) : 1;
+    } catch { return 1; }
+  });
+  const [screenVolume, setScreenVolume] = useState(() => {
+    try {
+      const raw = localStorage.getItem('render_call_screen_volume');
       if (raw === null) return 1;
       const stored = Number(raw);
       return Number.isFinite(stored) ? Math.max(0, Math.min(1, stored)) : 1;
@@ -466,6 +490,10 @@ export default function VoiceCall() {
   useEffect(() => {
     try { localStorage.setItem('render_call_remote_volume', String(remoteVolume)); } catch {}
   }, [remoteVolume]);
+
+  useEffect(() => {
+    try { localStorage.setItem('render_call_screen_volume', String(screenVolume)); } catch {}
+  }, [screenVolume]);
 
   useEffect(() => {
     if (!errorKey) return undefined;
@@ -505,9 +533,16 @@ export default function VoiceCall() {
           onMinimize={() => setMinimized(true)}
           remoteVolume={remoteVolume}
           onRemoteVolumeChange={setRemoteVolume}
+          screenVolume={screenVolume}
+          onScreenVolumeChange={setScreenVolume}
         />
       )}
-      {phase !== 'incoming' && <RemoteAudio stream={remoteStream} muted={deafened} volume={remoteVolume} />}
+      {phase !== 'incoming' && (
+        <>
+          <RemoteAudio stream={remoteStream} muted={deafened} volume={remoteVolume} />
+          <RemoteAudio stream={remoteScreenAudioStream} muted={deafened} volume={screenVolume} />
+        </>
+      )}
     </>
   );
 }
