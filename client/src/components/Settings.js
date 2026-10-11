@@ -243,6 +243,7 @@ function Settings({
     { action: 'playPause', label: t('keybindPlayPause'), description: t('keybindPlayPauseDesc') },
     { action: 'nextTrack', label: t('keybindNextTrack'), description: t('keybindNextTrackDesc') },
     { action: 'prevTrack', label: t('keybindPrevTrack'), description: t('keybindPrevTrackDesc') },
+    { action: 'favoriteTrack', label: 'Добавить текущую песню в любимое', description: 'Сохраняет играющий трек в разделе «Любимое»' },
   ].filter((row) => KEYBIND_ACTIONS.includes(row.action));
 
   const selectAccentPreset = (preset) => {
