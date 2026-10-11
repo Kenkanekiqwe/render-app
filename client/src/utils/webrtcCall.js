@@ -4,9 +4,9 @@ const DEFAULT_ICE = [
 ];
 
 export const SCREEN_PRESETS = {
-  '720p': { width: { ideal: 1280 }, height: { ideal: 720 } },
-  '1080p': { width: { ideal: 1920 }, height: { ideal: 1080 } },
-  '1440p': { width: { ideal: 2560 }, height: { ideal: 1440 } },
+  '720p': { width: { ideal: 1280, max: 1280 }, height: { ideal: 720, max: 720 } },
+  '1080p': { width: { ideal: 1920, max: 1920 }, height: { ideal: 1080, max: 1080 } },
+  '1440p': { width: { ideal: 2560, max: 2560 }, height: { ideal: 1440, max: 1440 } },
   native: { width: { ideal: 3840 }, height: { ideal: 2160 } },
 };
 
