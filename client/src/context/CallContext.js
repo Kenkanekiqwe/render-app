@@ -432,6 +432,19 @@ export function CallProvider({ enabled, children }) {
         signalType: 'screen-share-state',
         data: { sharing: true },
       });
+      // Renegotiate the already-created video transceiver. This also repairs
+      // peers that initially negotiated a receive-only/inactive video m-line.
+      try {
+        const offer = await peer.createOffer();
+        signaling.signal({
+          callId: callIdRef.current,
+          toUserId: remoteUserIdRef.current,
+          signalType: 'offer',
+          data: offer,
+        });
+      } catch {
+        // Track replacement still works in browsers where renegotiation is not needed.
+      }
       playUiSound('callShare', 0.65);
     } catch {
       setErrorKey('callScreenError');
