@@ -327,7 +327,7 @@ export class CallPeer {
     // Apply capture constraints where the browser permits and tune the encoder.
     try { videoTrack.contentHint = 'detail'; } catch { /* optional browser hint */ }
     const transceiver = this.pc.getTransceivers().find((item) => item.sender === sender);
-    if (transceiver && transceiver.direction === 'recvonly') {
+    if (transceiver && transceiver.direction !== 'sendrecv') {
       transceiver.direction = 'sendrecv';
     }
     await sender.replaceTrack(videoTrack);
