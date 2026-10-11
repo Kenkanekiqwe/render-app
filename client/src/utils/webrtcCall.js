@@ -45,6 +45,46 @@ export function buildScreenConstraints({ quality = '1080p', fps = 30, withAudio 
   };
 }
 
+function getScreenBitrate(settings = {}) {
+  const base = {
+    '720p': 2500000,
+    '1080p': 5000000,
+    '1440p': 8000000,
+    native: 12000000,
+  }[settings.quality] || 5000000;
+  const fpsScale = Math.min(2, Math.max(0.5, (Number(settings.fps) || 30) / 30));
+  return Math.round(base * fpsScale);
+}
+
+function getScreenTrackConstraints(settings = {}) {
+  const constraints = {
+    frameRate: { ideal: Number(settings.fps) || 30, max: Number(settings.fps) || 30 },
+  };
+  const preset = SCREEN_PRESETS[settings.quality] || SCREEN_PRESETS['1080p'];
+  if (settings.quality !== 'native') {
+    constraints.width = preset.width;
+    constraints.height = preset.height;
+  }
+  return constraints;
+}
+
+async function applyScreenSenderQuality(sender, settings = {}) {
+  if (!sender) return;
+  try {
+    const parameters = sender.getParameters();
+    if (parameters.encodings?.length) {
+      parameters.encodings = parameters.encodings.map((encoding) => ({
+        ...encoding,
+        maxBitrate: getScreenBitrate(settings),
+        maxFramerate: Number(settings.fps) || 30,
+      }));
+      await sender.setParameters(parameters);
+    }
+  } catch {
+    // Browser may not expose writable sender encoding parameters.
+  }
+}
+
 function preferOpus(pc) {
   try {
     const transceivers = pc.getTransceivers?.() || [];
@@ -283,8 +323,8 @@ export class CallPeer {
       throw new Error('no_video_sender');
     }
 
-    // Hint that this is a desktop capture, and use the already-negotiated
-    // sender so sharing can begin without renegotiating the active call.
+    // Keep the negotiated sender stable, but force it to send the desktop track.
+    // Apply capture constraints where the browser permits and tune the encoder.
     try { videoTrack.contentHint = 'detail'; } catch { /* optional browser hint */ }
     const transceiver = this.pc.getTransceivers().find((item) => item.sender === sender);
     if (transceiver && transceiver.direction === 'recvonly') {
@@ -293,14 +333,11 @@ export class CallPeer {
     await sender.replaceTrack(videoTrack);
     this.screenSender = sender;
     try {
-      const parameters = sender.getParameters();
-      if (parameters.encodings?.length) {
-        parameters.encodings = parameters.encodings.map((encoding) => ({ ...encoding, maxBitrate: 5000000 }));
-        await sender.setParameters(parameters);
-      }
+      await videoTrack.applyConstraints(getScreenTrackConstraints(settings));
     } catch {
-      // Bitrate tuning is optional; track replacement is the important step.
+      // A browser may lock display capture to the source's native dimensions.
     }
+    await applyScreenSenderQuality(sender, settings);
 
     if (this.screenAudioSender) {
       await this.screenAudioSender.replaceTrack(audioTrack || null);
@@ -340,8 +377,15 @@ export class CallPeer {
   }
 
   async applyScreenSettings(settings) {
-    if (!this.screenStream) return this.startScreenShare(settings);
-    return this.startScreenShare(settings);
+    const track = this.screenStream?.getVideoTracks?.()[0];
+    if (!track || track.readyState !== 'live') return false;
+    try {
+      await track.applyConstraints(getScreenTrackConstraints(settings));
+    } catch {
+      // Resolution constraints are advisory for display capture in some browsers.
+    }
+    await applyScreenSenderQuality(this.screenSender, settings);
+    return true;
   }
 
   destroy() {
