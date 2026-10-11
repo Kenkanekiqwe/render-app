@@ -47,6 +47,18 @@ export function CallProvider({ enabled, children }) {
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
   const [remoteScreenSharing, setRemoteScreenSharing] = useState(false);
+  const [audioSettings, setAudioSettings] = useState(() => {
+    const defaults = { noiseSuppression: true, echoCancellation: true, autoGainControl: true };
+    try {
+      const stored = JSON.parse(localStorage.getItem('render_call_audio_settings') || 'null');
+      if (!stored || typeof stored !== 'object') return defaults;
+      return {
+        noiseSuppression: typeof stored.noiseSuppression === 'boolean' ? stored.noiseSuppression : true,
+        echoCancellation: typeof stored.echoCancellation === 'boolean' ? stored.echoCancellation : true,
+        autoGainControl: typeof stored.autoGainControl === 'boolean' ? stored.autoGainControl : true,
+      };
+    } catch { return defaults; }
+  });
   const [connectionState, setConnectionState] = useState('new');
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
@@ -184,7 +196,7 @@ export function CallProvider({ enabled, children }) {
       setVideoEnabled(video);
 
       try {
-        await peer.initAsCaller(video);
+        await peer.initAsCaller(video, audioSettings);
         setLocalStream(peer.getLocalStream());
         attachPeerHandlers(peer, callId, remoteUserId);
         setPhaseSafe('outgoing');
@@ -193,7 +205,7 @@ export function CallProvider({ enabled, children }) {
         resetCall();
       }
     },
-    [attachPeerHandlers, resetCall, setPhaseSafe, signaling.iceServers]
+    [attachPeerHandlers, audioSettings, resetCall, setPhaseSafe, signaling.iceServers]
   );
 
   const startCall = useCallback(
@@ -230,7 +242,7 @@ export function CallProvider({ enabled, children }) {
     roleRef.current = 'callee';
 
     try {
-      await peer.initAsCallee(video);
+      await peer.initAsCallee(video, audioSettings);
       setLocalStream(peer.getLocalStream());
       attachPeerHandlers(peer, callId, remoteUserId);
 
@@ -250,6 +262,7 @@ export function CallProvider({ enabled, children }) {
   }, [
     attachPeerHandlers,
     incomingWithVideo,
+    audioSettings,
     processRemoteOffer,
     resetCall,
     setPhaseSafe,
@@ -421,6 +434,22 @@ export function CallProvider({ enabled, children }) {
     }
   }, [screenSettings, screenSharing, signaling]);
 
+  const applyAudioSettings = useCallback(async (next) => {
+    const updated = { ...audioSettings, ...next };
+    setAudioSettings(updated);
+    try {
+      localStorage.setItem('render_call_audio_settings', JSON.stringify(updated));
+    } catch {
+      // Current session still uses the selected settings.
+    }
+    try {
+      await peerRef.current?.applyAudioSettings(updated);
+      setErrorKey('');
+    } catch {
+      setErrorKey('callAudioSettingsNextCall');
+    }
+  }, [audioSettings]);
+
   const applyScreenSettings = useCallback((next) => {
     // Display-capture constraints are selected when sharing starts. Updating
     // preferences must not restart capture or reopen the browser source picker.
@@ -451,6 +480,7 @@ export function CallProvider({ enabled, children }) {
       remoteStream,
       screenStream,
       screenSettings,
+      audioSettings,
       errorKey,
       setErrorKey,
       startCall,
@@ -462,6 +492,7 @@ export function CallProvider({ enabled, children }) {
       toggleVideo,
       toggleScreenShare,
       applyScreenSettings,
+      applyAudioSettings,
     }),
     [
       phase,
@@ -478,6 +509,7 @@ export function CallProvider({ enabled, children }) {
       remoteStream,
       screenStream,
       screenSettings,
+      audioSettings,
       errorKey,
       startCall,
       acceptCall,
@@ -488,6 +520,7 @@ export function CallProvider({ enabled, children }) {
       toggleVideo,
       toggleScreenShare,
       applyScreenSettings,
+      applyAudioSettings,
     ]
   );
 
