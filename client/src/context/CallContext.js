@@ -98,6 +98,7 @@ export function CallProvider({ enabled, children }) {
   const hangUp = useCallback(() => {
     const callId = callIdRef.current;
     if (callId) {
+      playUiSound('callEnd', 0.65);
       const p = phaseRef.current;
       if (p === 'outgoing') signaling.cancel(callId);
       else if (p === 'incoming') signaling.reject(callId);
@@ -116,6 +117,7 @@ export function CallProvider({ enabled, children }) {
       peer.onScreenShareEnded = () => {
         setScreenStream(null);
         setScreenSharing(false);
+        playUiSound('callEnd', 0.5);
       };
       peer.onConnectionState = (state) => {
         setConnectionState(state);
@@ -384,12 +386,14 @@ export function CallProvider({ enabled, children }) {
       await peer.stopScreenShare(true);
       setScreenStream(null);
       setScreenSharing(false);
+      playUiSound('callEnd', 0.5);
       return;
     }
     try {
       const stream = await peer.startScreenShare(screenSettings);
       setScreenStream(stream);
       setScreenSharing(true);
+      playUiSound('callShare', 0.65);
     } catch {
       setErrorKey('callScreenError');
     }
