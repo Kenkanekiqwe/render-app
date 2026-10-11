@@ -56,6 +56,7 @@ export function CallProvider({ enabled, children }) {
         noiseSuppression: typeof stored.noiseSuppression === 'boolean' ? stored.noiseSuppression : true,
         echoCancellation: typeof stored.echoCancellation === 'boolean' ? stored.echoCancellation : true,
         autoGainControl: typeof stored.autoGainControl === 'boolean' ? stored.autoGainControl : true,
+        deviceId: typeof stored.deviceId === 'string' ? stored.deviceId : '',
       };
     } catch { return defaults; }
   });
