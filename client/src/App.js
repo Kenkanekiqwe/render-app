@@ -1252,8 +1252,10 @@ function AppContent() {
       case 'favoriteTrack': {
         const track = currentTrackRef.current;
         if (!track) return;
+        setLikedTracks((prev) => (
+          prev.some((item) => item.id === track.id) ? prev : toggleLikedTrack(prev, track)
+        ));
         playUiSound('like');
-        setLikedTracks((prev) => toggleLikedTrack(prev, track));
         break;
       }
       default:
