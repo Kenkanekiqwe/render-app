@@ -49,9 +49,22 @@ const SOUND_PROFILES = {
     { f: 587.33, d: 0.14, delay: 0.08 },
   ],
   callRing: [
-    { f: 523.25, d: 0.22, type: 'sine' },
-    { f: 659.25, d: 0.22, delay: 0.08, type: 'sine' },
-    { f: 783.99, d: 0.28, delay: 0.18, type: 'triangle' },
+    { f: 523.25, d: 0.24, type: 'sine' },
+    { f: 659.25, d: 0.24, delay: 0.07, type: 'triangle' },
+    { f: 783.99, d: 0.30, delay: 0.15, type: 'sine' },
+    { f: 1046.5, d: 0.34, delay: 0.23, type: 'sine' },
+    { f: 659.25, d: 0.22, delay: 0.74, type: 'sine' },
+    { f: 783.99, d: 0.25, delay: 0.82, type: 'triangle' },
+  ],
+  callShare: [
+    { f: 587.33, d: 0.075, type: 'sine' },
+    { f: 880, d: 0.12, delay: 0.055, type: 'triangle' },
+    { f: 1174.66, d: 0.16, delay: 0.11, type: 'sine' },
+  ],
+  callEnd: [
+    { f: 783.99, d: 0.1, type: 'sine' },
+    { f: 587.33, d: 0.14, delay: 0.07, type: 'triangle' },
+    { f: 440, d: 0.18, delay: 0.14, type: 'sine' },
   ],
 };
 
