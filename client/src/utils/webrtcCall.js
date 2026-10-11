@@ -306,7 +306,8 @@ export class CallPeer {
       await this.screenAudioSender.replaceTrack(audioTrack || null);
     }
 
-    this.setVideoEnabled(false);
+    // Keep the local camera track enabled for the user's own picture-in-picture.
+    // replaceTrack sends the desktop capture; it does not require disabling the camera.
     return this.screenStream;
   }
 
