@@ -41,7 +41,7 @@ export function buildScreenConstraints({ quality = '1080p', fps = 30, withAudio 
     },
     audio: withAudio,
     preferCurrentTab: false,
-    selfBrowserSurface: 'include',
+    selfBrowserSurface: 'exclude',
     systemAudio: 'include',
   };
 }
