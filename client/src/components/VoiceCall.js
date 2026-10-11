@@ -21,9 +21,11 @@ import { AdminPlaque } from './ProfileCosmetics';
 
 function VideoTile({ stream, muted, label, className = '' }) {
   const ref = useRef(null);
+  const [hasVideoFrame, setHasVideoFrame] = useState(false);
 
   useEffect(() => {
     const node = ref.current;
+    setHasVideoFrame(false);
     if (!node) return undefined;
     if (stream) {
       node.srcObject = stream;
@@ -32,20 +34,20 @@ function VideoTile({ stream, muted, label, className = '' }) {
       node.srcObject = null;
     }
     return () => {
-      if (node) node.srcObject = null;
+      if (node) { node.pause(); node.srcObject = null; }
     };
   }, [stream]);
 
   if (!stream) return null;
 
   return (
-    <div className={`voice-call-tile ${className}`}>
-      <video ref={ref} autoPlay playsInline muted={muted} />
+    <div className={`voice-call-tile ${className}${hasVideoFrame ? ' has-video-frame' : ' is-waiting-for-video'}`}>
+      <video ref={ref} autoPlay playsInline muted={muted} onLoadedData={() => setHasVideoFrame(true)} onPlaying={() => setHasVideoFrame(true)} />
+      {!hasVideoFrame && <div className="voice-call-video-waiting" role="status"><span className="voice-call-video-waiting-dot" />Ожидание видеопотока…</div>}
       {label ? <span className="voice-call-tile-label">{label}</span> : null}
     </div>
   );
 }
-
 function IncomingCallModal() {
   const { t } = useLanguage();
   const { remoteUser, incomingWithVideo, acceptCall, rejectCall } = useCall();
@@ -106,8 +108,9 @@ function ActiveCallPanel({ onMinimize }) {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  // Keep the video tile mounted while a remote track is temporarily muted during startup.
   const remoteVideo = remoteStream?.getVideoTracks?.().some(
-    (track) => track.readyState === 'live' && !track.muted
+    (track) => track.readyState === 'live'
   ) ? remoteStream : null;
   const localCamera = withVideo && videoEnabled ? localStream : null;
   const localVideo = screenSharing ? screenStream : localCamera;
@@ -138,7 +141,7 @@ function ActiveCallPanel({ onMinimize }) {
                 fallback={remoteUser?.username?.[0] || '?'}
               />
             </div>
-            <button type="button" className="voice-call-window-btn" onClick={onMinimize} title="Свернуть звонок" aria-label="Свернуть звонок">
+            <button type="button" className="voice-call-window-btn" onClick={onMinimize} title="Скрыть окно звонка (звонок продолжится)" aria-label="Скрыть окно звонка; звонок продолжится">
               <FaMinus />
             </button>
           </div>
@@ -312,7 +315,7 @@ export default function VoiceCall() {
           <div className="voice-call-minimized" role="status">
             <div className="voice-call-minimized-avatar"><AvatarImage url={remoteUser?.avatarUrl} fallback={remoteUser?.displayName?.[0] || remoteUser?.username?.[0] || '?'} /></div>
             <div className="voice-call-minimized-info"><strong>{remoteUser?.displayName || remoteUser?.username || 'Звонок'}</strong><span>{connectionState === 'connected' ? 'На связи' : 'Подключение…'}</span></div>
-            <button type="button" className="voice-call-window-btn" onClick={() => setMinimized(false)} title="Развернуть звонок" aria-label="Развернуть звонок"><FaExpand /></button>
+            <button type="button" className="voice-call-window-btn" onClick={() => setMinimized(false)} title="Открыть окно звонка" aria-label="Открыть окно звонка"><FaExpand /></button>
             <button type="button" className="voice-call-tool voice-call-tool--hangup" onClick={hangUp} title={t('callHangUp')} aria-label={t('callHangUp')}><FaPhoneSlash /></button>
           </div>
         ) : <ActiveCallPanel onMinimize={() => setMinimized(true)} />
