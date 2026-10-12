@@ -84,6 +84,25 @@ export async function updatePrivacy(payload) {
   return res.data.user;
 }
 
+export async function fetchAccountState() {
+  const res = await axios.get('/api/account-state');
+  return res.data.state || null;
+}
+
+export async function syncAccountState(state) {
+  const res = await axios.put('/api/account-state', { state });
+  return res.data.state || state;
+}
+
+export async function uploadAccountBackground(file) {
+  const form = new FormData();
+  form.append('background', file);
+  const res = await axios.post('/api/account-state/background', form, {
+    timeout: 120000,
+  });
+  return res.data.url;
+}
+
 export async function fetchMyPlaylists() {
   const res = await axios.get('/api/auth/playlists');
   return res.data.playlists || [];
