@@ -978,3 +978,54 @@
   accent-color: var(--accent-fill, #9b87ff);
   cursor: pointer;
 }
+
+
+/* Call settings must remain independently scrollable inside the clipped call
+   dialog. Constrain the panel itself, not just its children, so short windows
+   and high-DPI scaling cannot hide the lower controls. */
+.voice-call-panel {
+  min-height: 0;
+  overflow: hidden;
+}
+.voice-call-settings {
+  box-sizing: border-box;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(44dvh, 380px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(169,154,255,.55) rgba(255,255,255,.06);
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  align-content: start;
+  grid-auto-rows: max-content;
+  padding-bottom: max(18px, env(safe-area-inset-bottom));
+}
+.voice-call-settings > * {
+  min-width: 0;
+}
+.voice-call-settings select,
+.voice-call-settings input,
+.voice-call-settings label {
+  max-width: 100%;
+}
+@media (max-height: 760px) {
+  .voice-call-settings {
+    max-height: 38dvh;
+    padding-top: 10px;
+    padding-bottom: 12px;
+  }
+  .voice-call-stage {
+    min-height: 120px;
+  }
+}
+@media (max-width: 600px) {
+  .voice-call-settings {
+    max-height: 42dvh;
+    padding: 12px 14px max(16px, env(safe-area-inset-bottom));
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+}
