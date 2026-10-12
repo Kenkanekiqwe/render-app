@@ -47,7 +47,7 @@ function cleanLocalStorage(input, userId) {
   const clean = {};
   for (const [key, value] of Object.entries(input)) {
     const isGlobalRenderKey = key.startsWith('render_')
-      && !/^render_u\\d+_/.test(key)
+      && !/^render_u\d+_/.test(key)
       && !excludedGlobals.has(key);
     if (!(key.startsWith(prefix) || isGlobalRenderKey)) continue;
     if (typeof value !== 'string') continue;
