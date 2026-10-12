@@ -348,7 +348,7 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange, scree
                 checked={audioSettings.noiseSuppression}
                 onChange={(e) => applyAudioSettings({ noiseSuppression: e.target.checked })}
               />
-              <span>Шумоподавление</span>
+              <span>Нейросетевое шумоподавление (RNNoise)</span>
             </label>
             <label className="voice-call-settings-check">
               <input
@@ -366,7 +366,7 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange, scree
               />
               <span>Автоматическая громкость микрофона</span>
             </label>
-            <p className="voice-call-settings-hint">Если устройство не поддерживает изменение обработки на лету, настройки сохранятся и применятся при следующем звонке.</p>
+            <p className="voice-call-settings-hint">RNNoise дополнительно очищает микрофон от фонового шума. Подавление эха работает отдельно через браузер; если RNNoise недоступен, включается встроенное шумоподавление.</p>
             <div className="voice-call-settings-divider" />
             <h3 className="voice-call-settings-subtitle">Громкость собеседника</h3>
             <label className="voice-call-volume-row">
