@@ -603,6 +603,39 @@ function AppContent() {
     saveSearchRecent(searchRecent);
   }, [searchRecent, accountReady]);
 
+  // Also capture preferences written by independent components (for example
+  // microphone/screen-share controls) that do not update App-level React state.
+  useEffect(() => {
+    if (!accountReady || !authUser?.id) return undefined;
+    const persistSnapshot = () => {
+      try {
+        const prefix = `render_u${authUser.id}_`;
+        const allowedGlobals = new Set([
+          'render_app_settings',
+          'render_player',
+          'render_playback_session',
+          'render_call_audio_settings',
+          'render_call_screen_settings',
+          'render_custom_incoming_ringtone_name',
+        ]);
+        const localStorageSnapshot = {};
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith(prefix) || allowedGlobals.has(key))) {
+            localStorageSnapshot[key] = localStorage.getItem(key) || '';
+          }
+        }
+        syncAccountState({ localStorage: localStorageSnapshot }).catch((error) => {
+          console.error('Periodic account data sync failed:', error);
+        });
+      } catch (error) {
+        console.error('Could not collect periodic account data:', error);
+      }
+    };
+    const timer = window.setInterval(persistSnapshot, 20000);
+    return () => window.clearInterval(timer);
+  }, [accountReady, authUser?.id]);
+
   // Debounced cloud backup for all account-scoped localStorage data and the
   // app/player preferences. This includes data added by newer client features
   // as long as it uses the account namespace.
