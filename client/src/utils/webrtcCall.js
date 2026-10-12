@@ -252,44 +252,39 @@ export class CallPeer {
   }
 
   async applyAudioSettings(settings = {}) {
-    let track = this.localStream?.getAudioTracks?.()[0];
-    if (!track) return;
+    const currentTrack = this.localStream?.getAudioTracks?.()[0];
+    if (!currentTrack || !navigator.mediaDevices?.getUserMedia) return;
 
+    // Re-open the microphone with the requested DSP constraints instead of
+    // relying on applyConstraints(), which many browsers silently ignore for
+    // echoCancellation/noiseSuppression/autoGainControl after capture starts.
     const selectedDeviceId = settings.deviceId || '';
-    if (selectedDeviceId !== this.audioDeviceId) {
-      const replacementStream = await navigator.mediaDevices.getUserMedia({
-        audio: buildAudioConstraints(settings),
-        video: false,
-      });
-      const replacementTrack = replacementStream.getAudioTracks()[0];
-      if (!replacementTrack) {
-        replacementStream.getTracks().forEach((item) => item.stop());
-        throw new Error('Selected microphone did not provide an audio track');
-      }
-      const sender = this.pc?.getSenders?.().find((item) => item.track?.kind === 'audio');
-      try {
-        if (sender) await sender.replaceTrack(replacementTrack);
-      } catch (error) {
-        replacementStream.getTracks().forEach((item) => item.stop());
-        throw error;
-      }
-      this.localStream.removeTrack(track);
-      this.localStream.addTrack(replacementTrack);
-      track.stop();
-      track = replacementTrack;
-      this.audioDeviceId = selectedDeviceId;
+    const replacementStream = await navigator.mediaDevices.getUserMedia({
+      audio: buildAudioConstraints(settings),
+      video: false,
+    });
+    const replacementTrack = replacementStream.getAudioTracks()[0];
+    if (!replacementTrack) {
+      replacementStream.getTracks().forEach((item) => item.stop());
+      throw new Error('Selected microphone did not provide an audio track');
     }
 
-    // deviceId is a getUserMedia selection constraint, not a live DSP constraint.
-    const processingConstraints = buildAudioConstraints(settings);
-    delete processingConstraints.deviceId;
+    const sender = this.pc?.getSenders?.().find((item) => item.track?.kind === 'audio');
     try {
-      await track.applyConstraints(processingConstraints);
+      if (sender) await sender.replaceTrack(replacementTrack);
     } catch (error) {
-      // Some browsers cannot toggle DSP constraints on a live track. The
-      // selected preferences remain saved and apply to the next call.
+      replacementStream.getTracks().forEach((item) => item.stop());
       throw error;
     }
+
+    this.localStream.removeTrack(currentTrack);
+    this.localStream.addTrack(replacementTrack);
+    currentTrack.stop();
+    this.audioDeviceId = selectedDeviceId;
+
+    // Store actual browser-applied settings for diagnostics/UI. A browser or
+    // driver may reject a DSP mode even if getUserMedia resolves successfully.
+    this.lastAudioTrackSettings = replacementTrack.getSettings?.() || {};
   }
 
   setMuted(muted) {
