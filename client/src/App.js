@@ -634,18 +634,10 @@ function AppContent() {
     const timer = window.setTimeout(() => {
       try {
         const prefix = `render_u${authUser.id}_`;
-        const allowedGlobals = new Set([
-          'render_app_settings',
-          'render_player',
-          'render_playback_session',
-          'render_call_audio_settings',
-          'render_call_screen_settings',
-          'render_custom_incoming_ringtone_name',
-        ]);
         const localStorageSnapshot = {};
         for (let i = 0; i < localStorage.length; i += 1) {
           const key = localStorage.key(i);
-          if (key && (key.startsWith(prefix) || allowedGlobals.has(key))) {
+          if (key && (key.startsWith(prefix) || isAccountGlobalStorageKey(key))) {
             localStorageSnapshot[key] = localStorage.getItem(key) || '';
           }
         }
