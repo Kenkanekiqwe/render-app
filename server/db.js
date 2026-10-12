@@ -158,6 +158,16 @@ const WORKSHOP_ITEMS_TABLE_SQL = `
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 `;
 
+const USER_ACCOUNT_STATE_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS user_account_state (
+    user_id BIGINT UNSIGNED NOT NULL,
+    state_json LONGTEXT NOT NULL,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id),
+    CONSTRAINT fk_account_state_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+`;
+
 const USER_PLAYLISTS_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS user_playlists (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -383,6 +393,7 @@ async function init() {
     await pool.query(USER_STICKER_PACKS_TABLE_SQL);
     await pool.query(WORKSHOP_ITEMS_TABLE_SQL);
     await pool.query(USER_PLAYLISTS_TABLE_SQL);
+    await pool.query(USER_ACCOUNT_STATE_TABLE_SQL);
     await pool.query(MARKETPLACE_ITEMS_TABLE_SQL);
     await pool.query(USER_ITEM_INSTANCES_TABLE_SQL);
     await ensureInstanceColumns(pool, config.database);
