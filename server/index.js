@@ -24,6 +24,7 @@ const {
 } = require('./soundcloud-api');
 const db = require('./db');
 const { router: authRouter } = require('./auth');
+const { router: accountStateRouter } = require('./account-state');
 const { router: friendsRouter } = require('./friends');
 const { router: chatRouter } = require('./chat');
 const { router: commentsRouter } = require('./comments');
@@ -139,7 +140,7 @@ async function cached(key, ttlMs, loader) {
 
 app.use(cors());
 app.use(compression({ threshold: 1024 }));
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '10mb' }));
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
@@ -150,6 +151,7 @@ fs.mkdirSync(uploadsRoot, { recursive: true });
 app.use('/uploads', express.static(uploadsRoot, { maxAge: '7d' }));
 
 app.use('/api/auth', authRouter);
+app.use('/api/account-state', accountStateRouter);
 app.use('/api/friends', friendsRouter);
 app.use('/api/chat', chatRouter);
 app.use(commentsRouter);
