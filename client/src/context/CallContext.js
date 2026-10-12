@@ -471,9 +471,11 @@ export function CallProvider({ enabled, children }) {
     try {
       await peerRef.current?.applyAudioSettings(updated);
       setErrorKey('');
-    } catch {
-      // The preference is saved and will be applied to the next call if this
-      // browser cannot reconfigure the active microphone track in place.
+    } catch (error) {
+      // Do not pretend that the new processing mode is active if the browser
+      // cannot reopen the selected microphone with those constraints.
+      console.warn('[call] Could not apply microphone processing settings:', error);
+      setErrorKey('callMediaError');
     }
   }, [audioSettings]);
 
