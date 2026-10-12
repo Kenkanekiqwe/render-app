@@ -38,6 +38,7 @@ import {
   FaVolumeUp,
   FaUndo,
   FaSignOutAlt,
+  FaUpload,
 } from 'react-icons/fa';
 
 function SettingsButton({ variant = 'secondary', icon: Icon, className = '', children, ...props }) {
@@ -151,6 +152,7 @@ function Settings({
   sleepEndsAt = null,
   onSleepTimer,
   onBackgroundSave,
+  onBackgroundUpload,
   onOpenWorkshop,
   onOpenAdmin,
   onClearHistory,
@@ -167,6 +169,9 @@ function Settings({
   const [sleepChoice, setSleepChoice] = useState(0);
   const [sleepNow, setSleepNow] = useState(() => Date.now());
   const ringtoneInputRef = useRef(null);
+  const backgroundFileInputRef = useRef(null);
+  const [backgroundUploading, setBackgroundUploading] = useState(false);
+  const [backgroundUploadError, setBackgroundUploadError] = useState('');
   const [customRingtoneName, setCustomRingtoneName] = useState(() => {
     try { return localStorage.getItem('render_custom_incoming_ringtone_name') || ''; } catch { return ''; }
   });
@@ -554,7 +559,49 @@ function Settings({
                   onChange={(e) => setBackgroundInput(e.target.value)}
                   placeholder={t('settingsBackgroundPlaceholder')}
                 />
+                <input
+                  ref={backgroundFileInputRef}
+                  className="settings-background-file"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = '';
+                    if (!file) return;
+                    setBackgroundUploadError('');
+                    if (file.size > 16 * 1024 * 1024) {
+                      setBackgroundUploadError('Файл слишком большой. Максимальный размер — 16 МБ.');
+                      return;
+                    }
+                    if (!file.type.startsWith('image/')) {
+                      setBackgroundUploadError('Выбери файл изображения.');
+                      return;
+                    }
+                    if (!onBackgroundUpload) {
+                      setBackgroundUploadError('Загрузка фона сейчас недоступна.');
+                      return;
+                    }
+                    setBackgroundUploading(true);
+                    try {
+                      const url = await onBackgroundUpload(file);
+                      setBackgroundInput(url);
+                      await onBackgroundSave?.(url);
+                    } catch (error) {
+                      setBackgroundUploadError(error?.response?.data?.error || error?.message || 'Не удалось загрузить фон.');
+                    } finally {
+                      setBackgroundUploading(false);
+                    }
+                  }}
+                />
                 <div className="settings-action-row">
+                  <SettingsButton
+                    variant="primary"
+                    icon={FaUpload}
+                    disabled={backgroundUploading}
+                    onClick={() => backgroundFileInputRef.current?.click()}
+                  >
+                    {backgroundUploading ? 'Загрузка…' : 'Загрузить изображение (до 16 МБ)'}
+                  </SettingsButton>
                   <SettingsButton
                     variant="primary"
                     icon={FaSave}
@@ -567,6 +614,7 @@ function Settings({
                     icon={FaTimes}
                     onClick={() => {
                       setBackgroundInput('');
+                      setBackgroundUploadError('');
                       onBackgroundSave?.('');
                     }}
                   >
@@ -578,6 +626,7 @@ function Settings({
                     </SettingsButton>
                   )}
                 </div>
+                {backgroundUploadError ? <p className="settings-background-error" role="alert">{backgroundUploadError}</p> : null}
               </SettingsSection>
 
               <SettingsSection title={t('settingsUiRoundness')}>
