@@ -97,6 +97,12 @@ import {
 } from './utils/keybinds';
 import { syncGlobalKeybinds, listenGlobalKeybinds } from './utils/globalKeybinds';
 
+function isAccountGlobalStorageKey(key) {
+  return key.startsWith('render_')
+    && !/^render_u\\d+_/.test(key)
+    && !['render_auth_token', 'render_auth_user', 'render_static_id_seq'].includes(key);
+}
+
 function AppContent() {
   const [tracks, setTracks] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
@@ -355,19 +361,11 @@ function AppContent() {
     const remoteStorage = remoteAccountState?.localStorage;
     if (remoteStorage && typeof remoteStorage === 'object') {
       const scopedPrefix = `render_u${user.id}_`;
-      const globalKeys = new Set([
-        'render_app_settings',
-        'render_player',
-        'render_playback_session',
-        'render_call_audio_settings',
-        'render_call_screen_settings',
-        'render_custom_incoming_ringtone_name',
-      ]);
       try {
         const existingKeys = [];
         for (let i = 0; i < localStorage.length; i += 1) {
           const key = localStorage.key(i);
-          if (key && (key.startsWith(scopedPrefix) || globalKeys.has(key))) existingKeys.push(key);
+          if (key && (key.startsWith(scopedPrefix) || isAccountGlobalStorageKey(key))) existingKeys.push(key);
         }
         existingKeys.forEach((key) => {
           if (!Object.prototype.hasOwnProperty.call(remoteStorage, key)) localStorage.removeItem(key);
@@ -610,18 +608,10 @@ function AppContent() {
     const persistSnapshot = () => {
       try {
         const prefix = `render_u${authUser.id}_`;
-        const allowedGlobals = new Set([
-          'render_app_settings',
-          'render_player',
-          'render_playback_session',
-          'render_call_audio_settings',
-          'render_call_screen_settings',
-          'render_custom_incoming_ringtone_name',
-        ]);
         const localStorageSnapshot = {};
         for (let i = 0; i < localStorage.length; i += 1) {
           const key = localStorage.key(i);
-          if (key && (key.startsWith(prefix) || allowedGlobals.has(key))) {
+          if (key && (key.startsWith(prefix) || isAccountGlobalStorageKey(key))) {
             localStorageSnapshot[key] = localStorage.getItem(key) || '';
           }
         }
