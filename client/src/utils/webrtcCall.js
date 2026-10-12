@@ -1,3 +1,5 @@
+import { loadRnnoise, RnnoiseWorkletNode } from '@sapphi-red/web-noise-suppressor';
+
 const DEFAULT_ICE = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
@@ -124,6 +126,13 @@ export class CallPeer {
     this.pendingIceCandidates = [];
     this.hasRemoteDescription = false;
     this.audioDeviceId = '';
+    this.audioSender = null;
+    this.rawAudioTrack = null;
+    this.audioPipeline = null;
+    this.audioContext = null;
+    this.rnnoiseWasmBinary = null;
+    this.rnnoiseLoadPromise = null;
+    this.rnnoiseModuleLoaded = false;
   }
 
   async initAsCaller(withVideo, audioSettings) {
@@ -140,15 +149,88 @@ export class CallPeer {
     this.createPeerConnection();
   }
 
-  async ensureLocalMedia(withVideo, audioSettings) {
-    if (this.localStream) {
-      this.localStream.getTracks().forEach((t) => t.stop());
+  getDspAssetUrl(name) {
+    const base = typeof process !== 'undefined' && process.env?.PUBLIC_URL
+      ? process.env.PUBLIC_URL.replace(/\/$/, '')
+      : '';
+    return `${base}/audio-dsp/${name}`;
+  }
+
+  async createAudioOutputTrack(rawTrack, settings = {}) {
+    if (!settings.noiseSuppression || !rawTrack) {
+      return { track: rawTrack, cleanup: () => {}, rnnoise: false };
     }
+
+    try {
+      if (!this.rnnoiseLoadPromise) {
+        this.rnnoiseLoadPromise = loadRnnoise({
+          url: this.getDspAssetUrl('rnnoise.wasm'),
+          simdUrl: this.getDspAssetUrl('rnnoise_simd.wasm'),
+        }).then((binary) => {
+          this.rnnoiseWasmBinary = binary;
+          return binary;
+        }).catch((error) => {
+          this.rnnoiseLoadPromise = null;
+          throw error;
+        });
+      }
+      const wasmBinary = await this.rnnoiseLoadPromise;
+      if (!this.audioContext) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) throw new Error('AudioWorklet is not supported');
+        this.audioContext = new AudioContextClass({ sampleRate: 48000 });
+      }
+      const context = this.audioContext;
+      if (!context.audioWorklet) throw new Error('AudioWorklet is not supported');
+      if (!this.rnnoiseModuleLoaded) {
+        await context.audioWorklet.addModule(this.getDspAssetUrl('rnnoiseWorklet.js'));
+        this.rnnoiseModuleLoaded = true;
+      }
+      await context.resume();
+
+      const source = context.createMediaStreamSource(new MediaStream([rawTrack]));
+      const processor = new RnnoiseWorkletNode(context, {
+        wasmBinary,
+        maxChannels: 1,
+      });
+      const destination = context.createMediaStreamDestination();
+      source.connect(processor);
+      processor.connect(destination);
+      const processedTrack = destination.stream.getAudioTracks()[0];
+      if (!processedTrack) throw new Error('RNNoise did not create an output track');
+
+      return {
+        track: processedTrack,
+        rnnoise: true,
+        cleanup: () => {
+          try { source.disconnect(); } catch {}
+          try { processor.destroy?.(); } catch {}
+          try { processor.disconnect(); } catch {}
+          destination.stream.getTracks().forEach((track) => track.stop());
+        },
+      };
+    } catch (error) {
+      // Fall back to the browser's own noise suppression if WASM/AudioWorklet
+      // cannot start on this browser or device.
+      try { await rawTrack.applyConstraints({ noiseSuppression: true }); } catch {}
+      console.warn('[call] RNNoise unavailable; using browser noise suppression:', error);
+      return { track: rawTrack, cleanup: () => {}, rnnoise: false };
+    }
+  }
+
+  async ensureLocalMedia(withVideo, audioSettings) {
+    if (this.localStream) this.localStream.getTracks().forEach((track) => track.stop());
+    this.audioPipeline?.cleanup?.();
     this.audioDeviceId = audioSettings?.deviceId || '';
-    this.localStream = await navigator.mediaDevices.getUserMedia({
-      audio: buildAudioConstraints(audioSettings),
+    const captureStream = await navigator.mediaDevices.getUserMedia({
+      audio: buildAudioConstraints({ ...audioSettings, noiseSuppression: false }),
       video: buildVideoConstraints(withVideo),
     });
+    this.rawAudioTrack = captureStream.getAudioTracks()[0] || null;
+    this.audioPipeline = await this.createAudioOutputTrack(this.rawAudioTrack, audioSettings);
+    this.localStream = new MediaStream();
+    if (this.audioPipeline.track) this.localStream.addTrack(this.audioPipeline.track);
+    captureStream.getVideoTracks().forEach((track) => this.localStream.addTrack(track));
     return this.localStream;
   }
 
@@ -164,6 +246,7 @@ export class CallPeer {
 
     this.localStream.getTracks().forEach((track) => {
       const sender = this.pc.addTrack(track, this.localStream);
+      if (track.kind === 'audio') this.audioSender = sender;
       if (track.kind === 'video') this.videoSender = sender;
     });
 
@@ -255,38 +338,41 @@ export class CallPeer {
     const currentTrack = this.localStream?.getAudioTracks?.()[0];
     if (!currentTrack || !navigator.mediaDevices?.getUserMedia) return;
 
-    // Re-open the microphone with the requested DSP constraints instead of
-    // relying on applyConstraints(), which many browsers silently ignore for
-    // echoCancellation/noiseSuppression/autoGainControl after capture starts.
     const selectedDeviceId = settings.deviceId || '';
     const replacementStream = await navigator.mediaDevices.getUserMedia({
-      audio: buildAudioConstraints(settings),
+      audio: buildAudioConstraints({ ...settings, noiseSuppression: false }),
       video: false,
     });
-    const replacementTrack = replacementStream.getAudioTracks()[0];
-    if (!replacementTrack) {
-      replacementStream.getTracks().forEach((item) => item.stop());
+    const replacementRawTrack = replacementStream.getAudioTracks()[0];
+    if (!replacementRawTrack) {
+      replacementStream.getTracks().forEach((track) => track.stop());
       throw new Error('Selected microphone did not provide an audio track');
     }
 
-    const sender = this.pc?.getSenders?.().find((item) => item.track?.kind === 'audio');
+    let replacementPipeline;
     try {
-      if (sender) await sender.replaceTrack(replacementTrack);
+      replacementPipeline = await this.createAudioOutputTrack(replacementRawTrack, settings);
+      if (this.audioSender) await this.audioSender.replaceTrack(replacementPipeline.track);
     } catch (error) {
-      replacementStream.getTracks().forEach((item) => item.stop());
+      replacementPipeline?.cleanup?.();
+      replacementStream.getTracks().forEach((track) => track.stop());
       throw error;
     }
 
     this.localStream.removeTrack(currentTrack);
-    this.localStream.addTrack(replacementTrack);
+    this.localStream.addTrack(replacementPipeline.track);
+    if (this.audioPipeline?.track && this.audioPipeline.track !== this.rawAudioTrack) {
+      this.audioPipeline.cleanup?.();
+    }
+    if (this.rawAudioTrack && this.rawAudioTrack !== replacementPipeline.track) {
+      this.rawAudioTrack.stop();
+    }
     currentTrack.stop();
+    this.rawAudioTrack = replacementRawTrack;
+    this.audioPipeline = replacementPipeline;
     this.audioDeviceId = selectedDeviceId;
-
-    // Store actual browser-applied settings for diagnostics/UI. A browser or
-    // driver may reject a DSP mode even if getUserMedia resolves successfully.
-    this.lastAudioTrackSettings = replacementTrack.getSettings?.() || {};
+    this.lastAudioTrackSettings = replacementRawTrack.getSettings?.() || {};
   }
-
   setMuted(muted) {
     this.localStream?.getAudioTracks().forEach((t) => {
       t.enabled = !muted;
@@ -425,9 +511,19 @@ export class CallPeer {
     this.remoteMediaStream = null;
     this.pendingIceCandidates = [];
     this.hasRemoteDescription = false;
+    this.audioPipeline?.cleanup?.();
+    this.audioPipeline = null;
     if (this.localStream) {
-      this.localStream.getTracks().forEach((t) => t.stop());
+      this.localStream.getTracks().forEach((track) => track.stop());
       this.localStream = null;
+    }
+    if (this.rawAudioTrack && this.rawAudioTrack.readyState !== 'ended') {
+      this.rawAudioTrack.stop();
+    }
+    this.rawAudioTrack = null;
+    if (this.audioContext) {
+      this.audioContext.close().catch(() => {});
+      this.audioContext = null;
     }
     if (this.pc) {
       this.pc.close();
