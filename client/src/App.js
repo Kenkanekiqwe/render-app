@@ -99,7 +99,7 @@ import { syncGlobalKeybinds, listenGlobalKeybinds } from './utils/globalKeybinds
 
 function isAccountGlobalStorageKey(key) {
   return key.startsWith('render_')
-    && !/^render_u\\d+_/.test(key)
+    && !/^render_u\d+_/.test(key)
     && !['render_auth_token', 'render_auth_user', 'render_static_id_seq'].includes(key);
 }
 
