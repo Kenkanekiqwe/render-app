@@ -42,18 +42,14 @@ const uploadBackground = multer({
 
 function cleanLocalStorage(input, userId) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
-  const allowedGlobals = new Set([
-    'render_app_settings',
-    'render_player',
-    'render_playback_session',
-    'render_call_audio_settings',
-    'render_call_screen_settings',
-    'render_custom_incoming_ringtone_name',
-  ]);
   const prefix = `render_u${userId}_`;
+  const excludedGlobals = new Set(['render_auth_token', 'render_auth_user', 'render_static_id_seq']);
   const clean = {};
   for (const [key, value] of Object.entries(input)) {
-    if (!(key.startsWith(prefix) || allowedGlobals.has(key))) continue;
+    const isGlobalRenderKey = key.startsWith('render_')
+      && !/^render_u\\d+_/.test(key)
+      && !excludedGlobals.has(key);
+    if (!(key.startsWith(prefix) || isGlobalRenderKey)) continue;
     if (typeof value !== 'string') continue;
     if (value.length > 5 * 1024 * 1024) continue;
     clean[key] = value;
