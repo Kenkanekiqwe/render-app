@@ -25,6 +25,9 @@ import {
   getStoredUser,
   applyAuthHeader,
   fetchMe,
+  fetchAccountState,
+  syncAccountState,
+  uploadAccountBackground,
   clearSession,
   setSession,
   updateProfile,
@@ -339,6 +342,44 @@ function AppContent() {
   const bootstrapAccount = useCallback(async (user) => {
     if (!user) return;
     setStorageNamespace(user.id);
+
+    // The server snapshot is authoritative once an account has been synced.
+    // Restore it before loading React state so settings and libraries appear on
+    // every browser/device after sign-in.
+    let remoteAccountState = null;
+    try {
+      remoteAccountState = await fetchAccountState();
+    } catch (error) {
+      console.error('Account data load failed; using local cache:', error);
+    }
+    const remoteStorage = remoteAccountState?.localStorage;
+    if (remoteStorage && typeof remoteStorage === 'object') {
+      const scopedPrefix = `render_u${user.id}_`;
+      const globalKeys = new Set([
+        'render_app_settings',
+        'render_player',
+        'render_playback_session',
+        'render_call_audio_settings',
+        'render_call_screen_settings',
+        'render_custom_incoming_ringtone_name',
+      ]);
+      try {
+        const existingKeys = [];
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith(scopedPrefix) || globalKeys.has(key))) existingKeys.push(key);
+        }
+        existingKeys.forEach((key) => {
+          if (!Object.prototype.hasOwnProperty.call(remoteStorage, key)) localStorage.removeItem(key);
+        });
+        Object.entries(remoteStorage).forEach(([key, value]) => {
+          if (typeof value === 'string') localStorage.setItem(key, value);
+        });
+      } catch (error) {
+        console.error('Account data restore failed:', error);
+      }
+    }
+
     const storedSettings = loadAppSettings();
     setAppSettings(storedSettings);
     applyUserToState(user);
@@ -561,6 +602,43 @@ function AppContent() {
     if (!accountReady) return;
     saveSearchRecent(searchRecent);
   }, [searchRecent, accountReady]);
+
+  // Debounced cloud backup for all account-scoped localStorage data and the
+  // app/player preferences. This includes data added by newer client features
+  // as long as it uses the account namespace.
+  useEffect(() => {
+    if (!accountReady || !authUser?.id) return undefined;
+    const timer = window.setTimeout(() => {
+      try {
+        const prefix = `render_u${authUser.id}_`;
+        const allowedGlobals = new Set([
+          'render_app_settings',
+          'render_player',
+          'render_playback_session',
+          'render_call_audio_settings',
+          'render_call_screen_settings',
+          'render_custom_incoming_ringtone_name',
+        ]);
+        const localStorageSnapshot = {};
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith(prefix) || allowedGlobals.has(key))) {
+            localStorageSnapshot[key] = localStorage.getItem(key) || '';
+          }
+        }
+        syncAccountState({ localStorage: localStorageSnapshot }).catch((error) => {
+          console.error('Account data sync failed:', error);
+        });
+      } catch (error) {
+        console.error('Could not collect account data:', error);
+      }
+    }, 2500);
+    return () => window.clearTimeout(timer);
+  }, [
+    accountReady, authUser?.id, appSettings, profile, history, likedTracks,
+    searchRecent, userPlaylists, currentTrack, userQueue, isPlaying,
+    shuffleEnabled, repeatMode, playbackPlaylistId,
+  ]);
 
   useEffect(() => {
     const { customBackgroundUrl, ...persisted } = appSettings;
@@ -1635,8 +1713,10 @@ function AppContent() {
           sleepEndsAt={sleepEndsAt}
           onSleepTimer={handleSleepTimer}
           onBackgroundSave={async (customBackgroundUrl) => {
+            setAppSettings((prev) => ({ ...prev, customBackgroundUrl }));
             await syncProfileToServer({ backgroundUrl: customBackgroundUrl });
           }}
+          onBackgroundUpload={uploadAccountBackground}
           onOpenWorkshop={() => setCurrentView('marketplace')}
           onOpenAdmin={() => setCurrentView('admin')}
           onClearHistory={() => setHistory([])}
