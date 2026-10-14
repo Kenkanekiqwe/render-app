@@ -1,29 +1,31 @@
 export function parseLrc(lrcText) {
   if (!lrcText || typeof lrcText !== 'string') return [];
 
+  const source = lrcText.replace(/\r/g, '');
+  const offsetMatch = source.match(/^\s*\[offset:\s*(-?\d+)\s*\]\s*$/im);
+  // LRC offset is milliseconds: positive means the lyric timestamps are delayed.
+  const offsetSeconds = offsetMatch ? Number(offsetMatch[1]) / 1000 : 0;
+  const timestampRegex = /\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]/g;
   const lines = [];
 
-  lrcText.split('\n').forEach((rawLine) => {
+  source.split('\n').forEach((rawLine) => {
     const trimmed = rawLine.trim();
-    if (!trimmed) return;
+    if (!trimmed || /^\[(ar|al|ti|au|by|re|ve|length|offset):/i.test(trimmed)) return;
 
-    const tagRegex = /\[(\d{1,2}):(\d{2}(?:\.\d{1,3})?)\]/g;
+    const timestamps = [];
     let match;
-    let textStart = 0;
-
-    while ((match = tagRegex.exec(trimmed)) !== null) {
-      textStart = tagRegex.lastIndex;
+    timestampRegex.lastIndex = 0;
+    while ((match = timestampRegex.exec(trimmed)) !== null) {
+      const fraction = match[3] || '0';
+      const fractionalSeconds = Number(`0.${fraction}`);
+      timestamps.push(Math.max(0, Number(match[1]) * 60 + Number(match[2]) + fractionalSeconds - offsetSeconds));
     }
+    if (!timestamps.length) return;
 
-    const text = trimmed.slice(textStart).trim();
+    const text = trimmed.replace(timestampRegex, '').trim();
     if (!text) return;
 
-    tagRegex.lastIndex = 0;
-    while ((match = tagRegex.exec(trimmed)) !== null) {
-      const minutes = parseInt(match[1], 10);
-      const seconds = parseFloat(match[2]);
-      lines.push({ time: minutes * 60 + seconds, text });
-    }
+    timestamps.forEach((time) => lines.push({ time, text }));
   });
 
   return lines.sort((a, b) => a.time - b.time);
