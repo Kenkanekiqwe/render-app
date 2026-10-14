@@ -532,10 +532,22 @@ function Player({
               hls.loadSource(info.rewriteUrl);
               return;
             }
+
+            // SoundCloud HLS URLs can expire or a playlist/segment request can
+            // fail transiently. Refresh the stream once before stopping playback.
+            if (!streamRetryRef.current && currentTrackRef.current?.id) {
+              streamRetryRef.current = true;
+              hls.destroy();
+              hlsRef.current = null;
+              attachStreamRef.current?.(currentTrackRef.current, { refresh: true });
+              return;
+            }
+
             hls.destroy();
             hlsRef.current = null;
             isLoadingRef.current = false;
             setAudioReady(false);
+            streamRetryRef.current = false;
             setIsPlaying(false);
           });
           hls.loadSource(sourceUrl);
