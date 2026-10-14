@@ -472,7 +472,7 @@ body.now-playing-open {
   flex-direction: column;
   gap: 26px;
   padding: 50% 0;
-  transition: transform 1.18s cubic-bezier(0.2, 0.9, 0.25, 1);
+  transition: transform 0.34s cubic-bezier(0.2, 0.75, 0.25, 1);
 }
 
 .now-playing-lyrics-track--down {
