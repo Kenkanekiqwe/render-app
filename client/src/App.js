@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 import './App.css';
 import { LanguageProvider } from './context/LanguageContext';
 import PlaybackExtrasContext from './context/PlaybackExtrasContext';
@@ -104,6 +106,48 @@ function isAccountGlobalStorageKey(key) {
 }
 
 function AppContent() {
+  useEffect(() => {
+    if (!isDesktopApp()) return undefined;
+    let cancelled = false;
+
+    const checkForDesktopUpdate = async () => {
+      try {
+        const update = await check();
+        if (!update || cancelled) return;
+
+        const skippedVersion = localStorage.getItem('render_update_skipped_version');
+        if (skippedVersion === update.version) return;
+
+        const notes = typeof update.body === 'string' && update.body.trim()
+          ? `\\n\\nЧто нового:\\n${update.body.trim()}`
+          : '';
+        const accepted = window.confirm(
+          `Доступно обновление Render ${update.version}.${notes}\\n\\nУстановить обновление сейчас?`
+        );
+
+        if (!accepted) {
+          localStorage.setItem('render_update_skipped_version', update.version);
+          return;
+        }
+
+        await update.downloadAndInstall();
+        if (!cancelled) await relaunch();
+      } catch (error) {
+        // Missing release metadata or a network error must not block music playback.
+        console.warn('[updater] Update check failed:', error);
+      }
+    };
+
+    const initialTimer = window.setTimeout(checkForDesktopUpdate, 8000);
+    const interval = window.setInterval(checkForDesktopUpdate, 6 * 60 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(initialTimer);
+      window.clearInterval(interval);
+    };
+  }, []);
+
   const [tracks, setTracks] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [searchArtistResults, setSearchArtistResults] = useState([]);
