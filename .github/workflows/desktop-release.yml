@@ -1,0 +1,52 @@
+name: Build and publish Render desktop release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+          # Windows runner builds the x86_64 MSVC installer.
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install frontend dependencies
+        run: npm install --prefix client
+
+      - name: Build frontend
+        run: npm --prefix client run build
+        env:
+          CI: false
+
+      - name: Build and publish signed updater release
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          RENDER_PUBLIC_URL: http://31.77.11.88:5000
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Render ${{ github.ref_name }}"
+          releaseBody: "Render desktop installer and signed auto-update metadata."
+          releaseDraft: false
+          prerelease: false
+          uploadUpdaterJson: true
+          projectPath: .
