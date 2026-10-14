@@ -470,9 +470,19 @@ async function resolveLegacyTrackStreams(trackId) {
     );
   };
 
+  const hlsCandidates = transcodings.filter((item) =>
+    String(item?.format?.protocol || '').toLowerCase() === 'hls'
+    || /hls|m3u8/i.test(item?.url || '')
+  );
+  const aacHls = hlsCandidates.find((item) =>
+    /aac|mp4/i.test(String(item?.format?.mime_type || ''))
+    || /hls_aac_(160|96)/i.test(String(item?.url || ''))
+  );
+  const hls = aacHls || pick('hls');
   const progressive = pick('progressive');
-  const hls = pick('hls');
-  const chosen = progressive || hls;
+  // AAC HLS is SoundCloud's current supported stream format. Use legacy
+  // progressive MP3 only as a last-resort compatibility fallback.
+  const chosen = hls || progressive;
   if (!chosen?.url) {
     throw new Error('No playable stream (empty transcodings)');
   }
@@ -481,7 +491,7 @@ async function resolveLegacyTrackStreams(trackId) {
   if (!streamMeta?.url) throw new Error('Stream URL is missing');
 
   return {
-    protocol: progressive ? 'progressive' : 'hls',
+    protocol: chosen === progressive ? 'progressive' : 'hls',
     url: streamMeta.url,
   };
 }
@@ -531,16 +541,20 @@ async function resolveTrackStreams(trackId) {
   if (hasOfficialCredentials()) {
     try {
       const streams = await officialGet(`/tracks/${urn}/streams`);
+      // SoundCloud removed progressive MP3 from the official streams response.
+      // Prefer current AAC HLS formats; old MP3 fields are only compatibility fallbacks.
       const pick =
-        streams?.http_mp3_128_url
-          ? { protocol: 'progressive', url: streams.http_mp3_128_url }
-          : streams?.hls_mp3_128_url
-            ? { protocol: 'hls', url: streams.hls_mp3_128_url }
-            : streams?.hls_aac_160_url
-              ? { protocol: 'hls', url: streams.hls_aac_160_url }
-              : streams?.preview_mp3_128_url
-                ? { protocol: 'progressive', url: streams.preview_mp3_128_url }
-                : null;
+        streams?.hls_aac_160_url
+          ? { protocol: 'hls', url: streams.hls_aac_160_url }
+          : streams?.hls_aac_96_url
+            ? { protocol: 'hls', url: streams.hls_aac_96_url }
+            : streams?.hls_mp3_128_url
+              ? { protocol: 'hls', url: streams.hls_mp3_128_url }
+              : streams?.http_mp3_128_url
+                ? { protocol: 'progressive', url: streams.http_mp3_128_url }
+                : streams?.preview_mp3_128_url
+                  ? { protocol: 'progressive', url: streams.preview_mp3_128_url }
+                  : null;
 
       if (pick?.url) {
         const expanded = await expandOfficialStreamUrl(pick.url);
