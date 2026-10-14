@@ -165,28 +165,31 @@ function buildMediaRequestHeaders(req) {
 
 function rewritePlaylistUrls(playlistText, playlistUrl) {
   const baseUrl = new URL(playlistUrl);
+  const rewriteOne = (raw) => {
+    try {
+      const absolute = new URL(String(raw || '').trim(), baseUrl).toString();
+      if (!isAllowedMediaUrl(absolute)) return raw;
+      if (/\.m3u8(\?|$)/i.test(absolute)) {
+        return `/api/proxy/hls?url=${encodeURIComponent(absolute)}&proxy=1`;
+      }
+      return `/api/proxy/media?url=${encodeURIComponent(absolute)}&proxy=1`;
+    } catch {
+      return raw;
+    }
+  };
+
   return String(playlistText)
     .split('\n')
     .map((line) => {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) {
-        return line;
-      }
+      if (!trimmed) return line;
 
-      try {
-        const absolute = new URL(trimmed, baseUrl).toString();
-        if (!isAllowedMediaUrl(absolute)) {
-          return line;
-        }
-        // Keep HLS playlists and segments same-origin. Direct CDN redirects often
-        // fail CORS in hls.js and are unreachable for some listeners.
-        if (/\.m3u8(\?|$)/i.test(absolute)) {
-          return `/api/proxy/hls?url=${encodeURIComponent(absolute)}&proxy=1`;
-        }
-        return `/api/proxy/media?url=${encodeURIComponent(absolute)}&proxy=1`;
-      } catch {
-        return line;
-      }
+      // Rewrite relative/absolute media segment URIs.
+      if (!trimmed.startsWith('#')) return rewriteOne(trimmed);
+
+      // AAC HLS may use fragmented MP4 initialization maps or key URIs inside
+      // tag attributes; those must also be proxied to keep playback same-origin.
+      return line.replace(/URI="([^"]+)"/gi, (_match, uri) => `URI="${rewriteOne(uri)}"`);
     })
     .join('\n');
 }
