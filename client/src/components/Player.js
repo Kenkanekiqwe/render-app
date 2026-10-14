@@ -474,6 +474,7 @@ function Player({
     const markReady = () => {
       if (generation !== attachGenerationRef.current) return;
       isLoadingRef.current = false;
+      streamRetryRef.current = false;
       const audioEl = audioRef.current;
       const resumeAt = resumePositionRef.current;
       if (audioEl && resumeAt > 1) {
