@@ -1,6 +1,6 @@
 [package]
 name = "render"
-version = "1.0.0"
+version = "1.0.1"
 description = "Render Music Player"
 authors = ["Render"]
 edition = "2021"
