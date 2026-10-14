@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag (must match the app version, e.g. v1.0.1)"
+        required: true
+        type: string
+        default: "v1.0.1"
 
 permissions:
   contents: write
@@ -43,8 +50,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           RENDER_PUBLIC_URL: http://31.77.11.88:5000
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Render ${{ github.ref_name }}"
+          tagName: ${{ inputs.release_tag || github.ref_name }}
+          releaseName: "Render ${{ inputs.release_tag || github.ref_name }}"
           releaseBody: "Render desktop installer and signed auto-update metadata."
           releaseDraft: false
           prerelease: false
