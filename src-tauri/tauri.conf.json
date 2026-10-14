@@ -55,7 +55,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "untrusted comment: minisign public key: 8C5BA62DCC67DF99\nRWSZ32fMLaZbjMNtXiInyELZnGQS+UeA3z8GgiYLHkzsiFwQX5y5f7i",
+      "pubkey": "untrusted comment: minisign public key: 8C5BA62DCC67DF99\nRWSZ32fMLaZbjMNtXiInyELZnGQWS+UeA3z8GgiYLHkzsiFwQX5y5f7i",
       "endpoints": [
         "https://github.com/Kenkanekiqwe/render-app/releases/latest/download/latest.json"
       ],
