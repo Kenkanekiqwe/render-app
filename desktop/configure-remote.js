@@ -183,6 +183,8 @@ const capabilities = {
     'opener:default',
     'allow-sync-global-keybinds',
     'allow-discord-presence',
+    'updater:default',
+    'process:allow-restart',
     'global-shortcut:allow-is-registered',
     'global-shortcut:allow-register',
     'global-shortcut:allow-unregister',
