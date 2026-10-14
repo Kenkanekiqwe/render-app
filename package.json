@@ -1,62 +1,63 @@
 {
-    "name": "render-music-player",
-    "version": "1.0.0",
-    "description": "РњСѓР·С‹РєР°Р»СЊРЅС‹Р№ РїР»РµРµСЂ С‚РёРїР° Spotify",
-    "main": "server/index.js",
-    "scripts": {
-        "dev": "concurrently \"npm run server\" \"npm run client\"",
-        "server": "nodemon server/index.js",
-        "client": "cd client && npm start",
-        "build": "cd client && npm run build",
-        "build:fast": "cross-env GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true npm run build",
-        "start:prod": "cross-env NODE_ENV=production node server/index.js",
-        "build:desktop-prepare": "npm run build",
-        "build:desktop-exe": "node desktop/build-exe.js",
-        "build:server-exe": "pkg server/index.js --targets node18-win-x64 --output src-tauri/bin/render-server-x86_64-pc-windows-msvc.exe --compress GZip",
-        "desktop:configure": "node desktop/configure-remote.js",
-        "desktop:dev": "node desktop/configure-remote.js && node desktop/dev-launcher.js",
-        "desktop:build": "npm run build:desktop-exe",
-        "build:setup": "node desktop/configure-remote.js && node desktop/generate-icons.js && node desktop/tauri-build.js && node desktop/copy-tauri-artifacts.js",
-        "desktop:tauri": "npm run build:setup",
-        "install-all": "npm install && cd client && npm install",
-        "start": "cross-env NODE_ENV=production node server/index.js"
-    },
-    "keywords": [
-        "music",
-        "player",
-        "streaming"
+  "name": "render-music-player",
+  "version": "1.0.0",
+  "description": "РњСѓР·С‹РєР°Р»СЊРЅС‹Р№ РїР»РµРµСЂ С‚РёРїР° Spotify",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server/index.js",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "build:fast": "cross-env GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true npm run build",
+    "start:prod": "cross-env NODE_ENV=production node server/index.js",
+    "build:desktop-prepare": "npm run build",
+    "build:desktop-exe": "node desktop/build-exe.js",
+    "build:server-exe": "pkg server/index.js --targets node18-win-x64 --output src-tauri/bin/render-server-x86_64-pc-windows-msvc.exe --compress GZip",
+    "desktop:configure": "node desktop/configure-remote.js",
+    "desktop:dev": "node desktop/configure-remote.js && node desktop/dev-launcher.js",
+    "desktop:build": "npm run build:desktop-exe",
+    "build:setup": "node desktop/configure-remote.js && node desktop/generate-icons.js && node desktop/tauri-build.js && node desktop/copy-tauri-artifacts.js",
+    "desktop:tauri": "npm run build:setup",
+    "install-all": "npm install && cd client && npm install",
+    "start": "cross-env NODE_ENV=production node server/index.js",
+    "tauri": "tauri"
+  },
+  "keywords": [
+    "music",
+    "player",
+    "streaming"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "discord-rpc": "^4.0.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "https-proxy-agent": "^5.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.6.5",
+    "socks-proxy-agent": "^7.0.0",
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.0.2",
+    "pkg": "^5.8.1",
+    "rcedit": "^4.0.1"
+  },
+  "pkg": {
+    "scripts": [
+      "desktop/launcher.js",
+      "desktop/server-sidecar.js",
+      "server/index.js"
     ],
-    "author": "",
-    "license": "MIT",
-    "dependencies": {
-        "axios": "^1.6.2",
-        "bcryptjs": "^2.4.3",
-        "compression": "^1.8.1",
-        "cors": "^2.8.5",
-        "discord-rpc": "^4.0.1",
-        "dotenv": "^16.3.1",
-        "express": "^4.18.2",
-        "https-proxy-agent": "^5.0.1",
-        "jsonwebtoken": "^9.0.2",
-        "multer": "^1.4.5-lts.1",
-        "mysql2": "^3.6.5",
-        "socks-proxy-agent": "^7.0.0",
-        "ws": "^8.22.0"
-    },
-    "devDependencies": {
-        "@tauri-apps/cli": "^2.11.4",
-        "concurrently": "^8.2.2",
-        "cross-env": "^7.0.3",
-        "nodemon": "^3.0.2",
-        "pkg": "^5.8.1",
-        "rcedit": "^4.0.1"
-    },
-    "pkg": {
-        "scripts": [
-            "desktop/launcher.js",
-            "desktop/server-sidecar.js",
-            "server/index.js"
-        ],
-        "outputPath": "dist"
-    }
+    "outputPath": "dist"
+  }
 }
