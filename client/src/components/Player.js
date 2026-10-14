@@ -248,7 +248,9 @@ function Player({
     syncProgressVisual(position, durationRef.current);
 
     const now = performance.now();
-    if (now - lastProgressStateAtRef.current >= 500) {
+    // Lyrics and progress UI should follow the media clock closely; a 500 ms
+    // React-state throttle made every lyric line visibly late.
+    if (now - lastProgressStateAtRef.current >= 100) {
       lastProgressStateAtRef.current = now;
       setCurrentTime(position);
       onPlaybackProgressRef.current?.(position, durationRef.current);
