@@ -255,7 +255,7 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange, scree
           </div>
         </header>
 
-        <div ref={stageRef} className={`voice-call-stage${showingRemoteShare ? ' is-screen-share' : ''}`}>
+        <div ref={stageRef} className={`voice-call-stage${(showingRemoteShare || screenSharing) ? ' is-screen-share' : ''}`}>
           {mainVideo || pipVideo ? (
             <>
               <VideoTile
