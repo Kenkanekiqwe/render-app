@@ -119,7 +119,7 @@ function AppContent() {
         if (skippedVersion === update.version) return;
 
         const notes = typeof update.body === 'string' && update.body.trim()
-          ? `\\n\\nЧто нового:\\n${update.body.trim()}`
+          ? `\n\nЧто нового:\n${update.body.trim()}`
           : '';
         const accepted = window.confirm(
           `Доступно обновление Render ${update.version}.${notes}\\n\\nУстановить обновление сейчас?`
