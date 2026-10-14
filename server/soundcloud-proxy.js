@@ -178,11 +178,12 @@ function rewritePlaylistUrls(playlistText, playlistUrl) {
         if (!isAllowedMediaUrl(absolute)) {
           return line;
         }
-        // Nested playlists (m3u8) go through our HLS rewriter; media segments through binary proxy.
+        // Keep HLS playlists and segments same-origin. Direct CDN redirects often
+        // fail CORS in hls.js and are unreachable for some listeners.
         if (/\.m3u8(\?|$)/i.test(absolute)) {
-          return signRelayPath(absolute) || `/api/proxy/hls?url=${encodeURIComponent(absolute)}`;
+          return `/api/proxy/hls?url=${encodeURIComponent(absolute)}&proxy=1`;
         }
-        return signRelayPath(absolute) || `/api/proxy/media?url=${encodeURIComponent(absolute)}`;
+        return `/api/proxy/media?url=${encodeURIComponent(absolute)}&proxy=1`;
       } catch {
         return line;
       }
@@ -256,11 +257,14 @@ function registerSoundCloudProxyRoutes(app, { resolveStream, getAccessToken }) {
 
     try {
       const stream = await resolvePlayableUrl(trackId, forceRefresh);
-      const relay = shouldRelayMedia();
-      const playUrl = (relay && signRelayPath(stream.url)) || stream.url;
+      // HLS must be loaded through our own origin so hls.js can fetch the
+      // playlist and AAC segments without cross-origin CDN/CORS failures.
+      const playUrl = stream.protocol === 'hls'
+        ? `/api/stream/${encodeURIComponent(trackId)}?format=hls${forceRefresh ? '&refresh=1' : ''}`
+        : ((shouldRelayMedia() && signRelayPath(stream.url)) || stream.url);
       return res.json({
         protocol: stream.protocol,
-        relay,
+        relay: stream.protocol === 'hls' || shouldRelayMedia(),
         url: playUrl,
         rewriteUrl: playUrl,
       });
@@ -283,7 +287,9 @@ function registerSoundCloudProxyRoutes(app, { resolveStream, getAccessToken }) {
       const stream = await resolvePlayableUrl(trackId, refresh);
       const pipe = forceProxy || shouldPipeThroughOrigin();
 
-      if ((stream.protocol === 'hls' || wantHls) && (pipe || wantHls || req.query.rewrite === '1')) {
+      // Always rewrite HLS playlists through same-origin proxy routes, regardless
+      // of the optional relay/proxy flags. AAC HLS is now the primary format.
+      if (stream.protocol === 'hls' || wantHls) {
         return serveHlsPlaylist(stream.url, req, res);
       }
 
@@ -334,9 +340,10 @@ function registerSoundCloudProxyRoutes(app, { resolveStream, getAccessToken }) {
       return res.status(400).json({ error: 'Invalid media url' });
     }
 
-    // Artwork must be fetched by our server even when audio streams normally
-    // redirect to SoundCloud. This avoids direct CDN requests from the listener.
-    if (!isArtworkUrl(remoteUrl) && !shouldPipeThroughOrigin()) {
+    // HLS segments explicitly request proxy=1 to stay same-origin and avoid
+    // browser CORS failures. Artwork is also proxied through the server.
+    const forceProxy = req.query.proxy === '1' || req.query.proxy === 'true';
+    if (!isArtworkUrl(remoteUrl) && !shouldPipeThroughOrigin() && !forceProxy) {
       try {
         const dest = new URL(remoteUrl);
         res.setHeader('Cache-Control', 'public, max-age=86400');
