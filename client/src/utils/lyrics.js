@@ -3,7 +3,7 @@ export function parseLrc(lrcText) {
 
   const source = lrcText.replace(/\r/g, '');
   const offsetMatch = source.match(/^\s*\[offset:\s*(-?\d+)\s*\]\s*$/im);
-  // LRC offset is milliseconds: positive means the lyric timestamps are delayed.
+  // LRC offset is milliseconds: positive shifts lyric timestamps later.
   const offsetSeconds = offsetMatch ? Number(offsetMatch[1]) / 1000 : 0;
   const timestampRegex = /\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]/g;
   const lines = [];
@@ -18,7 +18,7 @@ export function parseLrc(lrcText) {
     while ((match = timestampRegex.exec(trimmed)) !== null) {
       const fraction = match[3] || '0';
       const fractionalSeconds = Number(`0.${fraction}`);
-      timestamps.push(Math.max(0, Number(match[1]) * 60 + Number(match[2]) + fractionalSeconds - offsetSeconds));
+      timestamps.push(Math.max(0, Number(match[1]) * 60 + Number(match[2]) + fractionalSeconds + offsetSeconds));
     }
     if (!timestamps.length) return;
 
