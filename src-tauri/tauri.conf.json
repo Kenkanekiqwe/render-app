@@ -35,6 +35,7 @@
     "targets": [
       "nsis"
     ],
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/icon.ico"
     ],
@@ -49,6 +50,17 @@
         "displayLanguageSelector": false,
         "startMenuFolder": "Render",
         "installerIcon": "icons/icon.ico"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "untrusted comment: minisign public key: 8C5BA62DCC67DF99\nRWSZ32fMLaZbjMNtXiInyELZnGQS+UeA3z8GgiYLHkzsiFwQX5y5f7i",
+      "endpoints": [
+        "https://github.com/Kenkanekiqwe/render-app/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
       }
     }
   }
