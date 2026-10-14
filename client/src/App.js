@@ -122,7 +122,7 @@ function AppContent() {
           ? `\n\nЧто нового:\n${update.body.trim()}`
           : '';
         const accepted = window.confirm(
-          `Доступно обновление Render ${update.version}.${notes}\\n\\nУстановить обновление сейчас?`
+          `Доступно обновление Render ${update.version}.${notes}\n\nУстановить обновление сейчас?`
         );
 
         if (!accepted) {
