@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 
 function LyricLine({ text, state, distance = 0, lineRef }) {
-  const depth = state === 'active' ? 0 : Math.min(3, Math.max(1, Number(distance) || 1));
+  const depth = state === 'active' || state === 'plain' ? 0 : Math.min(3, Math.max(1, Number(distance) || 1));
 
   return (
     <p
