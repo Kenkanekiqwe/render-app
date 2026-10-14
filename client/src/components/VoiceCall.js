@@ -209,9 +209,21 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange, scree
   // The main stage is always remote-first: never mirror our own screen capture
   // back to us as the full-screen tile. The remote peer's share arrives on the
   // remote video track and is promoted when its share-state signal is active.
-  const mainVideo = remoteVideo;
-  const pipVideo = localCamera;
   const showingRemoteShare = remoteScreenSharing && Boolean(remoteVideo);
+  // Give the active screen share the main stage on both sides: the receiver sees
+  // the peer's stream, while the sharer gets a local preview instead of a blank stage.
+  const mainVideo = showingRemoteShare ? remoteVideo : (screenSharing && screenStream ? screenStream : remoteVideo);
+  const pipVideo = screenSharing && !showingRemoteShare
+    ? (remoteVideo || localCamera)
+    : localCamera;
+  const mainVideoLabel = showingRemoteShare
+    ? 'Экран собеседника'
+    : screenSharing
+      ? 'Предпросмотр вашего экрана'
+      : t('callRemoteVideo');
+  const pipVideoLabel = screenSharing && !showingRemoteShare && remoteVideo
+    ? (t('callRemoteVideo') || 'Собеседник')
+    : t('callYou');
 
   const statusText =
     phase === 'outgoing'
@@ -249,10 +261,10 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange, scree
               <VideoTile
                 stream={mainVideo}
                 muted
-                label={showingRemoteShare ? 'Экран собеседника' : t('callRemoteVideo')}
+                label={mainVideoLabel}
                 className="voice-call-tile--main"
               />
-              {showingRemoteShare && (
+              {(showingRemoteShare || screenSharing) && (
                 <button
                   type="button"
                   className="voice-call-fullscreen-btn"
@@ -266,10 +278,10 @@ function ActiveCallPanel({ onMinimize, remoteVolume, onRemoteVolumeChange, scree
               <VideoTile
                 stream={pipVideo}
                 muted
-                label={t('callYou')}
+                label={pipVideoLabel}
                 className="voice-call-tile--pip"
               />
-              {(screenSharing || remoteScreenSharing) && <div className="voice-call-share-badge"><FaDesktop /> {showingRemoteShare ? 'Собеседник показывает экран' : screenSharing ? 'Вы показываете экран · локальный предпросмотр скрыт' : 'Демонстрация экрана'}</div>}
+              {(screenSharing || remoteScreenSharing) && <div className="voice-call-share-badge"><FaDesktop /> {showingRemoteShare ? 'Собеседник показывает экран' : screenSharing ? 'Вы показываете экран' : 'Демонстрация экрана'}</div>}
             </>
           ) : (
             <div className="voice-call-audio-only">
