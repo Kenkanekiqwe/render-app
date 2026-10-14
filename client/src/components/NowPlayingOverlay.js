@@ -103,17 +103,15 @@ function NowPlayingOverlay({
   }, [lyricsReady, syncedLines, plainLines]);
 
   const activeIndex = useMemo(() => {
-    if (!lyricsReady || !displayLines.length) return -1;
-    if (syncedLines.length) {
-      return getActiveLineIndex(syncedLines, currentTime);
-    }
-    if (!duration) return 0;
-    const ratio = Math.min(1, Math.max(0, currentTime / duration));
-    return Math.min(displayLines.length - 1, Math.floor(ratio * displayLines.length));
-  }, [syncedLines, displayLines, currentTime, duration, lyricsReady]);
+    if (!lyricsReady || !syncedLines.length) return -1;
+    // Plain lyrics have no timestamps. Do not invent a fake timeline by
+    // distributing lines evenly across the song duration.
+    return getActiveLineIndex(syncedLines, currentTime);
+  }, [syncedLines, currentTime, lyricsReady]);
 
   const getLyricState = (index) => {
-    if (activeIndex < 0) return index === 0 ? 'active' : 'upcoming';
+    if (!syncedLines.length) return 'plain';
+    if (activeIndex < 0) return 'upcoming';
     if (index === activeIndex) return 'active';
     if (index > activeIndex) return 'upcoming';
     return 'past';
